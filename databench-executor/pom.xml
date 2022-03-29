@@ -9,22 +9,18 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>databench-service</artifactId>
+    <artifactId>databench-executor</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
+
     <dependencies>
         <dependency>
             <groupId>org.example</groupId>
-            <artifactId>databench-persistence</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>databench-executor</artifactId>
+            <artifactId>databench-common</artifactId>
         </dependency>
 
         <dependency>
@@ -32,5 +28,4 @@
             <artifactId>common.loader.core</artifactId>
         </dependency>
     </dependencies>
-
 </project>

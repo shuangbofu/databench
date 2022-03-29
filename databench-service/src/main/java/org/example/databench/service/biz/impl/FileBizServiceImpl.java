@@ -68,7 +68,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         }
         File file = fileService.insertAnyRtEntity(fileParam, (a, f) -> {
         });
-        FileVersion version = fileVersionService.insertAnyRtEntity(fileParam, (i, fileVersion) -> {
+        fileVersionService.insertAnyRtEntity(fileParam, (i, fileVersion) -> {
             fileVersion.setFileId(file.getId());
             FileTuple fileTuple = setUpFileTuple(file);
             fileVersion.setContent(fileTuple.getContent());
@@ -98,18 +98,24 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         return newFieldId;
     }
 
+    public Pair<File, FileVersion> getFileAndVersion(Long fileId) {
+        File file = fileService.selectOneOrThrow(fileId);
+        Integer version = file.getVersion();
+        FileVersion fileVersion = fileVersionService.getByFileIdAndVersion(fileId, version);
+        return new Pair<>(file, fileVersion);
+    }
+
     @Override
     public FileDetailVO getFileDetail(Long fileId) {
-        File file = fileService.selectOneOrThrow(fileId);
-        return aToB(file, FileDetailVO.class, (a, b) -> {
-            getFileTupleVO(fileId, file.getVersion(), b);
-            copyAToB(file, b.getContent());
-            if (b.getContent() instanceof NodeContent) {
-                Long nodeId = nodeService.getNodeIdByFileId(fileId);
-                NodeContent nodeContent = (NodeContent) b.getContent();
-                nodeContent.setNodeId(nodeId);
-            }
-        });
+        Pair<File, FileVersion> pair = getFileAndVersion(fileId);
+        File file = pair.left;
+        FileVersion fileVersion = pair.right;
+        copyAToB(file, fileVersion.getContent());
+        if (fileVersion.getContent() instanceof NodeContent) {
+            Long nodeId = nodeService.getNodeIdByFileId(fileId);
+            ((NodeContent) fileVersion.getContent()).setNodeId(nodeId);
+        }
+        return aToB(fileVersion, FileDetailVO.class);
     }
 
     @Transactional(noRollbackFor = Exception.class)
@@ -180,7 +186,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Override
     public boolean commitFile(CommitParam commitParam) {
         Long fileId = commitParam.getFileId();
-        Pair<File, FileVersion> pair = getFilePairByFileId(fileId);
+        Pair<File, FileVersion> pair = getFileAndVersion(fileId);
         FileVersion fileVersion = pair.right;
         File file = pair.left;
 
@@ -202,17 +208,10 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         return true;
     }
 
-    private Pair<File, FileVersion> getFilePairByFileId(Long fileId) {
-        File file = fileService.selectOneOrThrow(fileId);
-        Integer version = file.getVersion();
-        FileVersion fileVersion = fileVersionService.getByFileIdAndVersion(fileId, version);
-        return new Pair<>(file, fileVersion);
-    }
-
     @Override
     public boolean commitFileCheck(CommitParam commitParam) {
         // TODO
-        Pair<File, FileVersion> pair = getFilePairByFileId(commitParam.getFileId());
+        Pair<File, FileVersion> pair = getFileAndVersion(commitParam.getFileId());
         NodeCfg cfg = (NodeCfg) pair.right.getCfg();
         nodeBizService.checkDependNodes(cfg.getInputs());
         return false;
@@ -228,11 +227,10 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         Integer devVersion = versionPair.left;
         Integer prodVersion = versionPair.right;
         return fileCommits.stream()
-                .map(i -> getFileTupleVO(fileId, i.getVersion(),
-                        aToB(i, CommitVersionVO.class, (t, v) -> {
-                            v.setInProd(prodVersion != null && prodVersion.equals(v.getVersion()));
-                            v.setInDev(devVersion != null && devVersion.equals(v.getVersion()));
-                        })))
+                .map(i -> aToB(fileVersionService.getByFileIdAndVersion(fileId, i.getVersion()), CommitVersionVO.class, (t, v) -> {
+                    v.setInProd(prodVersion != null && prodVersion.equals(v.getVersion()));
+                    v.setInDev(devVersion != null && devVersion.equals(v.getVersion()));
+                }))
                 .collect(Collectors.toList());
     }
 
@@ -249,11 +247,6 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
 
     private void checkContentAndCfg(FileBase content, FileCfg cfg) {
         // TODO
-    }
-
-    private <T extends FileTuple> T getFileTupleVO(Long fileId, Integer version, T vo) {
-        FileVersion fileVersion = fileVersionService.getByFileIdAndVersion(fileId, version);
-        return copyAToB(new FileTuple(fileVersion.getContent(), fileVersion.getCfg()), vo);
     }
 
     private FileTuple setUpFileTuple(File file) {

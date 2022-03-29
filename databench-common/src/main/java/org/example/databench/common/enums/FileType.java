@@ -48,4 +48,19 @@ public enum FileType {
     public boolean isJdbcResourceFile() {
         return name().startsWith("jdbc");
     }
+
+    public boolean isDatasource() {
+        return category.equals(FileCategory.datasource);
+    }
+
+    public DatasourceType toDsType() {
+        if (isDatasource()) {
+            if (jdbc_mysql.equals(this)) {
+                return DatasourceType.MySQL;
+            } else if (jdbc_hive.equals(this)) {
+                return DatasourceType.HIVE;
+            }
+        }
+        throw new RuntimeException("Not supported");
+    }
 }

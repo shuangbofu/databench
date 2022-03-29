@@ -1,5 +1,6 @@
 package org.example.databench.web.controller;
 
+import org.example.databench.common.domain.query.QueryResult;
 import org.example.databench.service.biz.QueryBizService;
 import org.example.databench.web.annotations.ResultController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ public class QueryController {
     private QueryBizService queryBizService;
 
     @PostMapping("run")
-    public Object runQueryFile(Long id) {
-        return queryBizService.runQueryFile(id);
+    public QueryResult runQueryFile(Long fileId) {
+        return queryBizService.runQueryFile(fileId);
     }
 }

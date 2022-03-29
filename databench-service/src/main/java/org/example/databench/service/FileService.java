@@ -14,6 +14,8 @@ import java.util.List;
  */
 public interface FileService extends BaseService<File> {
 
+    FileType getFileType(Long fileId);
+
     boolean modifyFile(FileParam fileParam);
 
     List<FileVO> listFiles(ModuleType belong, FileType fileType);

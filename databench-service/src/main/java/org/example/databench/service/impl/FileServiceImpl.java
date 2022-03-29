@@ -24,6 +24,11 @@ public class FileServiceImpl extends CommonService<File, FileDao> implements Fil
     }
 
     @Override
+    public FileType getFileType(Long fileId) {
+        return getDao().selectValueById(File::getFileType, fileId);
+    }
+
+    @Override
     public boolean modifyFile(FileParam fileParam) {
         return updateById(fileParam.getId(),
                 q -> q.lambda()
