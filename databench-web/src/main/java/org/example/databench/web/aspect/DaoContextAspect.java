@@ -20,7 +20,8 @@ public class DaoContextAspect {
     @Autowired
     private DaoContext daoContext;
 
-    @Around("execution(* org.example.databench.web.controller.*.*(..))")
+    @Around("execution(* org.example.databench.web.controller.*.*(..)) || " +
+            "execution(* org.example.databench.web.controller.*.*.*(..))")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
 //        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
 //                .getRequest();
