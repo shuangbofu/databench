@@ -8,6 +8,7 @@ import org.example.databench.common.domain.resource.FunctionContent;
 import org.example.databench.common.domain.resource.ResourceContent;
 import org.example.databench.common.enums.FileCategory;
 import org.example.databench.common.enums.FileType;
+import org.example.databench.common.enums.ModuleType;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.EXTERNAL_PROPERTY;
 
@@ -30,6 +31,7 @@ public abstract class FileBase {
     private String modifiedBy;
     private Integer version;
     private FileType fileType;
+    private ModuleType belong;
 
     public FileCategory getCategory() {
         return fileType.getCategory();

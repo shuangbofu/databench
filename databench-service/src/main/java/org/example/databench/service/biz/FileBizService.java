@@ -1,5 +1,6 @@
 package org.example.databench.service.biz;
 
+import org.example.databench.common.domain.file.FileTuple;
 import org.example.databench.service.domain.param.CommitParam;
 import org.example.databench.service.domain.param.FileModifyParam;
 import org.example.databench.service.domain.param.FileParam;
@@ -7,6 +8,7 @@ import org.example.databench.service.domain.param.FolderParam;
 import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
+import org.example.databench.service.domain.vo.JobResultVO;
 
 import java.util.List;
 
@@ -36,4 +38,6 @@ public interface FileBizService {
     List<CommitVersionVO> getCommitVersions(Long fileId);
 
     List<FileVO> getUniCommittedFiles();
+
+    JobResultVO runFile(Long fileId, FileTuple fileTuple);
 }

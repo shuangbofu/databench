@@ -1,6 +1,7 @@
-package org.example.databench.web.controller;
+package org.example.databench.web.controller.file;
 
 import com.google.common.collect.Lists;
+import org.example.databench.common.domain.file.FileTuple;
 import org.example.databench.common.enums.FileType;
 import org.example.databench.common.enums.ModuleType;
 import org.example.databench.service.FileService;
@@ -14,8 +15,10 @@ import org.example.databench.service.domain.param.FolderParam;
 import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
+import org.example.databench.service.domain.vo.JobResultVO;
 import org.example.databench.web.annotations.ResultController;
 import org.example.databench.web.config.DaoContext;
+import org.example.databench.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +30,7 @@ import java.util.Map;
  * Created by shuangbofu on 2021/9/11 1:45 下午
  */
 @ResultController("api")
-public class CommonBizController extends BaseController {
+public class FileCommonBizController extends BaseController {
 
     @Autowired
     private FolderService folderService;
@@ -37,7 +40,7 @@ public class CommonBizController extends BaseController {
     @Autowired
     private FileBizService fileBizService;
 
-    public CommonBizController(@Autowired DaoContext daoContext) {
+    public FileCommonBizController(@Autowired DaoContext daoContext) {
         super(daoContext);
     }
 
@@ -128,5 +131,11 @@ public class CommonBizController extends BaseController {
     public List<FileVO> getFiles(Long workspaceId, Long bizId, ModuleType belong, FileType fileType) {
         daoContext(workspaceId, bizId);
         return fileService.listFiles(belong, fileType);
+    }
+
+    @PostMapping("file/run")
+    public JobResultVO runFile(@RequestParam(value = "fileId", required = false) Long fileId,
+                               @RequestBody(required = false) FileTuple fileTuple) {
+        return fileBizService.runFile(fileId, fileTuple);
     }
 }

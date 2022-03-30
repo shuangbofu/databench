@@ -6,6 +6,7 @@ import org.example.databench.common.domain.file.datasource.DatasourceParam;
 import org.example.databench.common.domain.file.datasource.JdbcParam;
 import org.example.databench.common.domain.node.NodeCfg;
 import org.example.databench.common.domain.node.NodeContent;
+import org.example.databench.common.domain.query.QueryResult;
 import org.example.databench.common.domain.resource.FunctionContent;
 import org.example.databench.common.domain.resource.ResourceContent;
 import org.example.databench.common.enums.*;
@@ -25,6 +26,8 @@ import org.example.databench.service.domain.param.FolderParam;
 import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
+import org.example.databench.service.domain.vo.JobResultVO;
+import org.example.databench.service.manager.ExecutorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +59,8 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     private NodeService nodeService;
     @Autowired
     private WorkspaceService workspaceService;
+    @Autowired
+    private ExecutorManager executorManager;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -245,6 +250,18 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public JobResultVO runFile(Long fileId, FileTuple fileTuple) {
+        if (fileId != null) {
+            fileTuple = getFileDetail(fileId);
+        }
+        if (fileTuple == null) {
+            // TODO
+            throw new RuntimeException("error");
+        }
+        return runFile(fileTuple);
+    }
+
     private void checkContentAndCfg(FileBase content, FileCfg cfg) {
         // TODO
     }
@@ -295,5 +312,23 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
             cfg = new FileCfg.EmptyFiLeCfg();
         }
         return new FileTuple(content, cfg);
+    }
+
+    public JobResultVO runFile(FileTuple fileTuple) {
+        if (fileTuple.getContent().getBelong().equals(ModuleType.query)) {
+            FileContent content = (FileContent) fileTuple.getContent();
+            String queryCode = content.getCode();
+            QueryCfg cfg = (QueryCfg) fileTuple.getCfg();
+            if (cfg.getDatasourceFileId() == 0) {
+                throw new RuntimeException("没有选择数据源");
+            }
+            FileVersion datasourceFile = fileVersionService.getByFileIdAndVersion(cfg.getDatasourceFileId(),
+                    cfg.getDatasourceFileVersion());
+            DatasourceCfg datasourceCfg = (DatasourceCfg) datasourceFile.getCfg();
+            QueryResult queryResult = executorManager.getDatasourceApi().queryResult(datasourceCfg,
+                    datasourceFile.getContent().getFileType().toDsType(), queryCode);
+            return new JobResultVO(queryResult, null);
+        }
+        throw new RuntimeException("Not supported");
     }
 }
