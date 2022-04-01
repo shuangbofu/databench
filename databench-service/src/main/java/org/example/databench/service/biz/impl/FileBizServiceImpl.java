@@ -252,9 +252,8 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Override
     public String runFile(Long fileId, FileTuple fileTuple) {
         File file = fileService.selectOneById(fileId);
-        FileVersion fileVersion = null;
+        FileVersion fileVersion = fileVersionService.getByFileIdAndVersion(fileId, file.getVersion());
         if (fileTuple != null) {
-            fileVersion = fileVersionService.getByFileIdAndVersion(fileId, file.getVersion());
             copyAToB(fileTuple, fileVersion);
         }
         if (fileVersion == null) {
@@ -262,30 +261,36 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
             throw new RuntimeException("error");
         }
 
-        if (fileVersion.getContent().getBelong().equals(ModuleType.query)) {
+        String jobId;
+        if (file.getBelong().equals(ModuleType.query)) {
             FileContent content = (FileContent) fileVersion.getContent();
-            String queryCode = content.getCode();
             QueryCfg cfg = (QueryCfg) fileVersion.getCfg();
             if (cfg.getDatasourceFileId() == 0) {
                 throw new RuntimeException("没有选择数据源");
             }
             FileVersion datasourceFile = fileVersionService.getByFileIdAndVersion(cfg.getDatasourceFileId(),
                     cfg.getDatasourceFileVersion());
-            DatasourceCfg datasourceCfg = (DatasourceCfg) datasourceFile.getCfg();
-            String jobId = executorManager.getDatasourceApi().queryResult(datasourceCfg,
-                    datasourceFile.getContent().getFileType().toDsType(), queryCode);
-
-            JobHistory jobHistory = new JobHistory()
-                    .setJobId(jobId)
-                    .setFileId(file.getId())
-                    .setDone(false);
-            jobHistory.setBizId(file.getBizId());
-            jobHistory.setWorkspaceId(file.getWorkspaceId());
-            jobHistory.setTenant(file.getTenant());
-            jobHistoryService.insertAny(jobHistory);
-            return jobId;
+            jobId = executorManager.getDatasourceApi().executeFileJob(
+                    datasourceFile.getContent().getFileType(),
+                    content,
+                    datasourceFile.getCfg());
+        } else if (file.getBelong().isDevelop()) {
+            jobId = executorManager.getJobApi().executeFileJob(file.getFileType(),
+                    (FileContent) fileVersion.getContent(), fileVersion.getCfg());
+        } else {
+            throw new RuntimeException("Not supported " + file.getFileType());
         }
-        throw new RuntimeException("Not supported " + file.getFileType());
+
+        JobHistory jobHistory = new JobHistory()
+                .setJobId(jobId)
+                .setFileId(file.getId())
+                .setDone(false);
+        jobHistory.setBizId(file.getBizId());
+        jobHistory.setWorkspaceId(file.getWorkspaceId());
+        jobHistory.setTenant(file.getTenant());
+        jobHistoryService.insertAny(jobHistory);
+
+        return jobId;
     }
 
     private void checkContentAndCfg(FileBase content, FileCfg cfg) {

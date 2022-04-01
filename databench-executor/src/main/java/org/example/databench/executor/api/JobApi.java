@@ -1,5 +1,8 @@
 package org.example.databench.executor.api;
 
+import org.example.databench.common.domain.file.FileCfg;
+import org.example.databench.common.domain.file.FileContent;
+import org.example.databench.common.enums.FileType;
 import org.example.databench.common.enums.JobHistoryStatus;
 import org.example.databench.executor.domain.Log;
 
@@ -9,11 +12,13 @@ import org.example.databench.executor.domain.Log;
 public interface JobApi {
     Log fetchOffsetLog(String jobId, Long offset, Long length);
 
-    Log fetchLog(String jobId);
+//    Log fetchLog(String jobId);
 
     boolean isDone(String jobId);
 
     boolean cancel(String jobId);
 
     JobHistoryStatus getStatus(String jobId);
+
+    String executeFileJob(FileType fileType, FileContent fileContent, FileCfg fileCfg);
 }

@@ -21,7 +21,7 @@ public class DaoContext {
     TransmittableThreadLocal<String> userThreadLocal = new TransmittableThreadLocal<>();
 
     {
-        userThreadLocal.set("test");
+        userThreadLocal.set("测试用户");
         bizThreadLocal.remove();
         workspaceIdThreadLocal.remove();
     }

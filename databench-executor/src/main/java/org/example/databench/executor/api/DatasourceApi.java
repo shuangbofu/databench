@@ -11,7 +11,5 @@ public interface DatasourceApi extends JobApi {
 
     boolean checkConnection(DatasourceCfg datasourceCfg, DatasourceType datasourceType);
 
-    String queryResult(DatasourceCfg datasourceCfg, DatasourceType datasourceType, String code);
-
     QueryResult fetchResult(String jobId);
 }

@@ -52,12 +52,12 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
 
     @Override
     public boolean checkJobDone(String jobId) {
-        return executorManager.getDatasourceApi().isDone(jobId);
+        return executorManager.getJobApi().isDone(jobId);
     }
 
     @Override
     public Log fetchOffsetLog(String jobId, Long offset, Long length) {
-        return executorManager.getDatasourceApi().fetchOffsetLog(jobId, offset, length);
+        return executorManager.getJobApi().fetchOffsetLog(jobId, offset, length);
     }
 
     @Override
@@ -67,6 +67,6 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
 
     @Override
     public Boolean cancelJob(String jobId) {
-        return executorManager.getDatasourceApi().cancel(jobId);
+        return executorManager.getJobApi().cancel(jobId);
     }
 }

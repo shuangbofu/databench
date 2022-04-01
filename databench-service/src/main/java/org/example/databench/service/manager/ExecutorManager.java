@@ -1,7 +1,9 @@
 package org.example.databench.service.manager;
 
 import org.example.databench.executor.api.DatasourceApi;
-import org.example.databench.executor.service.LocalDatasourceService;
+import org.example.databench.executor.api.JobApi;
+import org.example.databench.executor.service.LocalDatasourceRunner;
+import org.example.databench.executor.service.ScriptRunner;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,6 +15,10 @@ import org.springframework.stereotype.Service;
 public class ExecutorManager {
 
     public DatasourceApi getDatasourceApi() {
-        return new LocalDatasourceService();
+        return new LocalDatasourceRunner();
+    }
+
+    public JobApi getJobApi() {
+        return new ScriptRunner();
     }
 }
