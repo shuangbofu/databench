@@ -15,7 +15,6 @@ import org.example.databench.service.domain.param.FolderParam;
 import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
-import org.example.databench.service.domain.vo.JobResultVO;
 import org.example.databench.web.annotations.ResultController;
 import org.example.databench.web.config.DaoContext;
 import org.example.databench.web.controller.BaseController;
@@ -134,8 +133,8 @@ public class FileCommonBizController extends BaseController {
     }
 
     @PostMapping("file/run")
-    public JobResultVO runFile(@RequestParam(value = "fileId", required = false) Long fileId,
-                               @RequestBody(required = false) FileTuple fileTuple) {
+    public String runFile(@RequestParam(value = "fileId") Long fileId,
+                          @RequestBody(required = false) FileTuple fileTuple) {
         return fileBizService.runFile(fileId, fileTuple);
     }
 }

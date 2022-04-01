@@ -8,7 +8,6 @@ import org.example.databench.service.domain.param.FolderParam;
 import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
-import org.example.databench.service.domain.vo.JobResultVO;
 
 import java.util.List;
 
@@ -39,5 +38,5 @@ public interface FileBizService {
 
     List<FileVO> getUniCommittedFiles();
 
-    JobResultVO runFile(Long fileId, FileTuple fileTuple);
+    String runFile(Long fileId, FileTuple fileTuple);
 }

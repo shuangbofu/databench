@@ -7,9 +7,11 @@ import org.example.databench.common.enums.DatasourceType;
 /**
  * Created by shuangbofu on 2022/3/30 00:46
  */
-public interface DatasourceApi {
+public interface DatasourceApi extends JobApi {
 
     boolean checkConnection(DatasourceCfg datasourceCfg, DatasourceType datasourceType);
 
-    QueryResult queryResult(DatasourceCfg datasourceCfg, DatasourceType datasourceType, String code);
+    String queryResult(DatasourceCfg datasourceCfg, DatasourceType datasourceType, String code);
+
+    QueryResult fetchResult(String jobId);
 }

@@ -3,12 +3,15 @@ package org.example.databench.executor.utils;
 import com.dtstack.dtcenter.loader.cache.pool.config.PoolConfig;
 import com.dtstack.dtcenter.loader.client.ClientCache;
 import com.dtstack.dtcenter.loader.client.IClient;
+import com.dtstack.dtcenter.loader.dto.source.HiveSourceDTO;
 import com.dtstack.dtcenter.loader.dto.source.ISourceDTO;
+import com.dtstack.dtcenter.loader.dto.source.Mysql5SourceDTO;
 import com.dtstack.dtcenter.loader.dto.source.RdbmsSourceDTO;
 import com.dtstack.dtcenter.loader.source.DataSourceType;
 import org.example.databench.common.domain.file.datasource.DatasourceParam;
 import org.example.databench.common.domain.file.datasource.JdbcParam;
 import org.example.databench.common.enums.DatasourceType;
+import org.example.databench.common.utils.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,14 +28,21 @@ public class DatasourceUtils {
     public static ISourceDTO getDatasource(DatasourceParam param, DatasourceType datasourceType) {
         DataSourceType type = toDsType(datasourceType);
         if (datasourceType.supportJdbc()) {
+            RdbmsSourceDTO target = null;
+            if (type.equals(DataSourceType.HIVE)) {
+                target = new HiveSourceDTO();
+            } else if (type.equals(DataSourceType.MySQL)) {
+                target = Mysql5SourceDTO.builder().build();
+            }
             JdbcParam jdbcParam = (JdbcParam) param;
-            return RdbmsSourceDTO.builder()
-                    .sourceType(type.getVal())
-                    .url(jdbcParam.getJdbcUrl())
-                    .username(jdbcParam.getUsername())
-                    .password(jdbcParam.getPassword())
-                    .poolConfig(PoolConfig.builder().build())
-                    .build();
+            if (target != null) {
+                target.setUrl(jdbcParam.getJdbcUrl());
+                target.setUsername(jdbcParam.getUsername());
+                target.setPassword(jdbcParam.getPassword());
+                target.setPoolConfig(PoolConfig.builder().build());
+            }
+            System.out.println(JSONUtils.toJSONString(target));
+            return target;
         }
         throw new RuntimeException("Not supported " + datasourceType);
     }

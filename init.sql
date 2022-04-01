@@ -175,3 +175,23 @@ CREATE TABLE `workspace`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT '工作空间表';
+
+DROP TABLE IF EXISTS `job_history`;
+CREATE TABLE `job_history`
+(
+    `id`           bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `gmt_create`   bigint(13)          NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `gmt_modified` bigint(13)          NOT NULL DEFAULT '0' COMMENT '修改时间',
+    `create_by`    varchar(64)         NOT NULL DEFAULT '' COMMENT '创建人',
+    `modified_by`  varchar(64)         NOT NULL DEFAULT '' COMMENT '修改人',
+    `workspace_id` bigint(20)          NOT NULL DEFAULT '0' COMMENT '工作空间ID',
+    `biz_id`       bigint(20)          NOT NULL DEFAULT '0' COMMENT '业务流程ID',
+    `tenant`       varchar(64)         NOT NULL DEFAULT '' COMMENT '租户',
+    `deleted`      tinyint(1)          NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+    `job_id`       varchar(64)         NOT NULL DEFAULT '' COMMENT '作业',
+    `done`         int(10)             NOT NULL DEFAULT '0' COMMENT '是否完成',
+    `status`       varchar(16)         NOT NULL DEFAULT '' COMMENT '状态',
+    `file_id`      bigint(20)          NOT NULL DEFAULT '0' COMMENT '文件ID',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT '临时作业历史表';

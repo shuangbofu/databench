@@ -6,15 +6,11 @@ import org.example.databench.common.domain.file.datasource.DatasourceParam;
 import org.example.databench.common.domain.file.datasource.JdbcParam;
 import org.example.databench.common.domain.node.NodeCfg;
 import org.example.databench.common.domain.node.NodeContent;
-import org.example.databench.common.domain.query.QueryResult;
 import org.example.databench.common.domain.resource.FunctionContent;
 import org.example.databench.common.domain.resource.ResourceContent;
 import org.example.databench.common.enums.*;
 import org.example.databench.common.utils.Pair;
-import org.example.databench.persistence.entity.File;
-import org.example.databench.persistence.entity.FileCommit;
-import org.example.databench.persistence.entity.FileVersion;
-import org.example.databench.persistence.entity.Folder;
+import org.example.databench.persistence.entity.*;
 import org.example.databench.service.*;
 import org.example.databench.service.base.AbstractService;
 import org.example.databench.service.biz.FileBizService;
@@ -26,7 +22,6 @@ import org.example.databench.service.domain.param.FolderParam;
 import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
-import org.example.databench.service.domain.vo.JobResultVO;
 import org.example.databench.service.manager.ExecutorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,6 +54,8 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     private NodeService nodeService;
     @Autowired
     private WorkspaceService workspaceService;
+    @Autowired
+    private JobHistoryService jobHistoryService;
     @Autowired
     private ExecutorManager executorManager;
 
@@ -113,11 +110,13 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Override
     public FileDetailVO getFileDetail(Long fileId) {
         Pair<File, FileVersion> pair = getFileAndVersion(fileId);
-        File file = pair.left;
-        FileVersion fileVersion = pair.right;
+        return toFileTuple(pair.left, pair.right);
+    }
+
+    private FileDetailVO toFileTuple(File file, FileVersion fileVersion) {
         copyAToB(file, fileVersion.getContent());
         if (fileVersion.getContent() instanceof NodeContent) {
-            Long nodeId = nodeService.getNodeIdByFileId(fileId);
+            Long nodeId = nodeService.getNodeIdByFileId(file.getId());
             ((NodeContent) fileVersion.getContent()).setNodeId(nodeId);
         }
         return aToB(fileVersion, FileDetailVO.class);
@@ -251,15 +250,42 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     }
 
     @Override
-    public JobResultVO runFile(Long fileId, FileTuple fileTuple) {
-        if (fileId != null) {
-            fileTuple = getFileDetail(fileId);
+    public String runFile(Long fileId, FileTuple fileTuple) {
+        File file = fileService.selectOneById(fileId);
+        FileVersion fileVersion = null;
+        if (fileTuple != null) {
+            fileVersion = fileVersionService.getByFileIdAndVersion(fileId, file.getVersion());
+            copyAToB(fileTuple, fileVersion);
         }
-        if (fileTuple == null) {
+        if (fileVersion == null) {
             // TODO
             throw new RuntimeException("error");
         }
-        return runFile(fileTuple);
+
+        if (fileVersion.getContent().getBelong().equals(ModuleType.query)) {
+            FileContent content = (FileContent) fileVersion.getContent();
+            String queryCode = content.getCode();
+            QueryCfg cfg = (QueryCfg) fileVersion.getCfg();
+            if (cfg.getDatasourceFileId() == 0) {
+                throw new RuntimeException("没有选择数据源");
+            }
+            FileVersion datasourceFile = fileVersionService.getByFileIdAndVersion(cfg.getDatasourceFileId(),
+                    cfg.getDatasourceFileVersion());
+            DatasourceCfg datasourceCfg = (DatasourceCfg) datasourceFile.getCfg();
+            String jobId = executorManager.getDatasourceApi().queryResult(datasourceCfg,
+                    datasourceFile.getContent().getFileType().toDsType(), queryCode);
+
+            JobHistory jobHistory = new JobHistory()
+                    .setJobId(jobId)
+                    .setFileId(file.getId())
+                    .setDone(false);
+            jobHistory.setBizId(file.getBizId());
+            jobHistory.setWorkspaceId(file.getWorkspaceId());
+            jobHistory.setTenant(file.getTenant());
+            jobHistoryService.insertAny(jobHistory);
+            return jobId;
+        }
+        throw new RuntimeException("Not supported " + file.getFileType());
     }
 
     private void checkContentAndCfg(FileBase content, FileCfg cfg) {
@@ -312,23 +338,5 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
             cfg = new FileCfg.EmptyFiLeCfg();
         }
         return new FileTuple(content, cfg);
-    }
-
-    public JobResultVO runFile(FileTuple fileTuple) {
-        if (fileTuple.getContent().getBelong().equals(ModuleType.query)) {
-            FileContent content = (FileContent) fileTuple.getContent();
-            String queryCode = content.getCode();
-            QueryCfg cfg = (QueryCfg) fileTuple.getCfg();
-            if (cfg.getDatasourceFileId() == 0) {
-                throw new RuntimeException("没有选择数据源");
-            }
-            FileVersion datasourceFile = fileVersionService.getByFileIdAndVersion(cfg.getDatasourceFileId(),
-                    cfg.getDatasourceFileVersion());
-            DatasourceCfg datasourceCfg = (DatasourceCfg) datasourceFile.getCfg();
-            QueryResult queryResult = executorManager.getDatasourceApi().queryResult(datasourceCfg,
-                    datasourceFile.getContent().getFileType().toDsType(), queryCode);
-            return new JobResultVO(queryResult, null);
-        }
-        throw new RuntimeException("Not supported");
     }
 }

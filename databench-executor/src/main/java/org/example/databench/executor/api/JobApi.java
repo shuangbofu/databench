@@ -1,0 +1,19 @@
+package org.example.databench.executor.api;
+
+import org.example.databench.common.enums.JobHistoryStatus;
+import org.example.databench.executor.domain.Log;
+
+/**
+ * Created by shuangbofu on 2022/3/31 16:22
+ */
+public interface JobApi {
+    Log fetchOffsetLog(String jobId, Long offset, Long length);
+
+    Log fetchLog(String jobId);
+
+    boolean isDone(String jobId);
+
+    boolean cancel(String jobId);
+
+    JobHistoryStatus getStatus(String jobId);
+}
