@@ -78,10 +78,12 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         });
         String workspaceName = workspaceService.getNameById(file.getWorkspaceId());
 
-        nodeBizService.createOutputNode(
-                file.getId(),
-                workspaceName + "." + file.getName() + "_out",
-                "", SourceType.system);
+        if (fileParam.getBelong().isDevelop()) {
+            nodeBizService.createOutputNode(
+                    file.getId(),
+                    workspaceName + "." + file.getName() + "_out",
+                    "", SourceType.system);
+        }
         return aToB(file, FileVO.class);
     }
 
@@ -262,7 +264,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         }
 
         String jobId;
-        if (file.getBelong().equals(ModuleType.query)) {
+        if (file.getBelong().equals(ModuleType.query) || file.getCategory().equals(FileCategory.database)) {
             FileContent content = (FileContent) fileVersion.getContent();
             QueryCfg cfg = (QueryCfg) fileVersion.getCfg();
             if (cfg.getDatasourceFileId() == 0) {

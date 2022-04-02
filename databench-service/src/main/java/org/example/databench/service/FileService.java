@@ -27,4 +27,6 @@ public interface FileService extends BaseService<File> {
     Long getCountByFolderId(Long folderId);
 
     boolean updateVersion(Long fileId, Integer version);
+
+    String getName(Long fileId);
 }

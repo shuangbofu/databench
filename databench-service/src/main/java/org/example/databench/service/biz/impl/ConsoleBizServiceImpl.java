@@ -4,6 +4,7 @@ import org.example.databench.common.domain.query.QueryResult;
 import org.example.databench.common.vo.PageVO;
 import org.example.databench.executor.domain.Log;
 import org.example.databench.persistence.entity.JobHistory;
+import org.example.databench.service.FileService;
 import org.example.databench.service.JobHistoryService;
 import org.example.databench.service.base.AbstractService;
 import org.example.databench.service.biz.ConsoleBizService;
@@ -24,6 +25,10 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
 
     @Autowired
     private ExecutorManager executorManager;
+
+    @Autowired
+    private FileService fileService;
+
     private final Consumer<JobHistoryVO> consumer = (i) -> {
         if (!i.getDone()) {
             i.setDone(checkJobDone(i.getJobId()));
@@ -31,6 +36,7 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
         if (i.getDone()) {
             i.setStatus(executorManager.getDatasourceApi().getStatus(i.getJobId()));
         }
+        i.setName(fileService.getName(i.getFileId()));
     };
     @Autowired
     private JobHistoryService jobHistoryService;

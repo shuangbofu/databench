@@ -2,7 +2,9 @@ package org.example.databench.common.domain.node;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.example.databench.common.domain.file.FileCfg;
+import org.example.databench.common.domain.file.QueryCfg;
 import org.example.databench.common.enums.ScheduleType;
 
 import java.util.ArrayList;
@@ -13,8 +15,9 @@ import java.util.Map;
 /**
  * Created by shuangbofu on 2021/9/11 2:57 下午
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class NodeCfg implements FileCfg {
+public class NodeCfg extends QueryCfg implements FileCfg {
     private ScheduleType scheduleType = ScheduleType.normal;
     private String cronExpression = "00 04 00 * * ?";
     private Integer timeout = 60;

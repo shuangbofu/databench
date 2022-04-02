@@ -14,4 +14,5 @@ import org.example.databench.persistence.entity.base.UserEntity;
 public class Workspace extends UserEntity {
     private String name;
     private String spaceCfg;
+    private String description;
 }

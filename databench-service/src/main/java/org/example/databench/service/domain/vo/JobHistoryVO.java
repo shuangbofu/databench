@@ -10,6 +10,7 @@ import org.example.databench.common.enums.JobHistoryStatus;
 public class JobHistoryVO {
     private String jobId;
     private Boolean done;
+    private String name;
     private JobHistoryStatus status;
     private Long fileId;
     private Long createTime;

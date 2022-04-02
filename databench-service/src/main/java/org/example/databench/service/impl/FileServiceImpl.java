@@ -67,4 +67,9 @@ public class FileServiceImpl extends CommonService<File, FileDao> implements Fil
     public boolean updateVersion(Long fileId, Integer version) {
         return updateById(fileId, q -> q.lambda().set(File::getVersion, version));
     }
+
+    @Override
+    public String getName(Long fileId) {
+        return getDao().selectValueById(File::getName, fileId);
+    }
 }

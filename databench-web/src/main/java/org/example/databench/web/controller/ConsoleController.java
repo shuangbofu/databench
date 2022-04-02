@@ -44,6 +44,7 @@ public class ConsoleController extends BaseController {
 
     @PostMapping("/jobHistory/page")
     PageVO<JobHistoryVO> getPage(@RequestBody PageFilterParam<JobHistoryFilter> param) {
+        daoContext(param.getFilter().getWorkspaceId(), param.getFilter().getBizId());
         return consoleBizService.getJobHistories(param);
     }
 

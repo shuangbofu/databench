@@ -25,7 +25,8 @@ public class JobHistoryServiceImpl extends CommonService<JobHistory, JobHistoryD
     public PageVO<JobHistoryVO> getPage(PageFilterParam<JobHistoryFilter> param) {
         JobHistoryFilter filter = param.getFilter();
         return toVOPage(param.getPageNum(), param.getPageSize(), q -> {
-            q.lambda().eq(JobHistory::getFileId, filter.getFileId())
+            Long fileId = filter.getFileId();
+            q.lambda().eq(fileId != null && fileId > 0, JobHistory::getFileId, fileId)
                     .orderByDesc(JobHistory::getCreateTime);
         }, JobHistoryVO.class);
     }

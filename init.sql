@@ -171,7 +171,8 @@ CREATE TABLE `workspace`
     `tenant`       varchar(64)         NOT NULL DEFAULT '' COMMENT '租户',
     `deleted`      tinyint(1)          NOT NULL DEFAULT '0' COMMENT '逻辑删除',
     `name`         varchar(64)         NOT NULL DEFAULT '' COMMENT '名称',
-    `space_cfg`    text,
+    `space_cfg`    text COMMENT '空间配置',
+    `description`  varchar(32)         NOT NULL DEFAULT '' COMMENT '描述',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT '工作空间表';
