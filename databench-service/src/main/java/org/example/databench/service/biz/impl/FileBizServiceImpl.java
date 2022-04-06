@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -112,16 +112,16 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Override
     public FileDetailVO getFileDetail(Long fileId) {
         Pair<File, FileVersion> pair = getFileAndVersion(fileId);
-        return toFileTuple(pair.left, pair.right);
-    }
-
-    private FileDetailVO toFileTuple(File file, FileVersion fileVersion) {
+        File file = pair.left;
+        FileVersion fileVersion = pair.right;
         copyAToB(file, fileVersion.getContent());
         if (fileVersion.getContent() instanceof NodeContent) {
             Long nodeId = nodeService.getNodeIdByFileId(file.getId());
             ((NodeContent) fileVersion.getContent()).setNodeId(nodeId);
         }
-        return aToB(fileVersion, FileDetailVO.class);
+        FileDetailVO fileDetailVO = aToB(fileVersion, FileDetailVO.class);
+        fileDetailVO.setBelong(file.getBelong());
+        return fileDetailVO;
     }
 
     @Transactional(noRollbackFor = Exception.class)
@@ -155,11 +155,11 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
 
     @Override
     public boolean deleteFolder(Long folderId) {
-        Consumer<Supplier<Long>> check = countSupplier -> Optional.of(countSupplier.get())
+        BiConsumer<String, Supplier<Long>> check = (msg, countSupplier) -> Optional.of(countSupplier.get())
                 .filter(i -> i == 0)
-                .orElseThrow(() -> new RuntimeException("存在子结点无法删除"));
-        check.accept(() -> folderService.getChildCount(folderId));
-        check.accept(() -> fileService.getCountByFolderId(folderId));
+                .orElseThrow(() -> new RuntimeException("存在" + msg + "无法删除"));
+        check.accept("文件夹", () -> folderService.getChildCount(folderId));
+        check.accept("文件", () -> fileService.getCountByFolderId(folderId));
         return true;
     }
 
@@ -233,9 +233,12 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         Integer devVersion = versionPair.left;
         Integer prodVersion = versionPair.right;
         return fileCommits.stream()
-                .map(i -> aToB(fileVersionService.getByFileIdAndVersion(fileId, i.getVersion()), CommitVersionVO.class, (t, v) -> {
+                .map(i -> aToB(i, CommitVersionVO.class, (t, v) -> {
                     v.setInProd(prodVersion != null && prodVersion.equals(v.getVersion()));
                     v.setInDev(devVersion != null && devVersion.equals(v.getVersion()));
+                    FileVersion version = fileVersionService.getByFileIdAndVersion(fileId, i.getVersion());
+                    v.setContent(version.getContent());
+                    v.setCfg(version.getCfg());
                 }))
                 .collect(Collectors.toList());
     }

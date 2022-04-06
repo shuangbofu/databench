@@ -53,8 +53,8 @@ public class FileCommonBizController extends BaseController {
         return folderService.modifyFolder(folderParam);
     }
 
-    @DeleteMapping("folder")
-    public boolean deleteFolder(Long folderId) {
+    @DeleteMapping("folder/{folderId}")
+    public boolean deleteFolder(@PathVariable("folderId") Long folderId) {
         return fileBizService.deleteFolder(folderId);
     }
 
@@ -84,8 +84,8 @@ public class FileCommonBizController extends BaseController {
         return fileBizService.modifyFile(fileParam);
     }
 
-    @DeleteMapping("file")
-    public boolean deleteFile(Long fileId) {
+    @DeleteMapping("file/{fileId}")
+    public boolean deleteFile(@PathVariable("fileId") Long fileId) {
         return fileBizService.deleteFile(fileId);
     }
 

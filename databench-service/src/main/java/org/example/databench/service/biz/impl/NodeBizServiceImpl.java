@@ -45,6 +45,8 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
     @Transactional
     @Override
     public boolean commitNode(File file, FileVersion fileVersion) {
+        NodeCfg cfg = (NodeCfg) fileVersion.getCfg();
+        checkDependNodes(cfg.getInputs());
         Function<Node, Node> copyToNode = node -> {
             copyAToBWithoutId(file, node, (f, n) -> {
                 n.setFileId(f.getId());
@@ -63,7 +65,6 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
             nodeService.updateVersion(node.getId(), fileVersion.getVersion(), false);
         }
 
-        NodeCfg cfg = (NodeCfg) fileVersion.getCfg();
         Map<String, Optional<Long>> map = getOutputNameNodeIdMap(cfg.getInputs());
         List<Long> parentNodeIds = map.values().stream().filter(Optional::isPresent)
                 .map(Optional::get).collect(Collectors.toList());
