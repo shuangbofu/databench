@@ -6,6 +6,8 @@ import org.example.databench.common.domain.file.datasource.DatasourceParam;
 import org.example.databench.common.domain.file.datasource.JdbcParam;
 import org.example.databench.common.domain.node.NodeCfg;
 import org.example.databench.common.domain.node.NodeContent;
+import org.example.databench.common.domain.node.NodeOutput;
+import org.example.databench.common.domain.node.OutputNode;
 import org.example.databench.common.domain.resource.FunctionContent;
 import org.example.databench.common.domain.resource.ResourceContent;
 import org.example.databench.common.enums.*;
@@ -53,6 +55,8 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Autowired
     private NodeService nodeService;
     @Autowired
+    private NodeOutputService nodeOutputService;
+    @Autowired
     private WorkspaceService workspaceService;
     @Autowired
     private JobHistoryService jobHistoryService;
@@ -79,10 +83,8 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         String workspaceName = workspaceService.getNameById(file.getWorkspaceId());
 
         if (fileParam.getBelong().isDevelop()) {
-            nodeBizService.createOutputNode(
-                    file.getId(),
-                    workspaceName + "." + file.getName() + "_out",
-                    "", SourceType.system);
+            nodeBizService.createOutputNode(file.getId(),
+                    workspaceName + "." + file.getId() + "_out", "", SourceType.system);
         }
         return aToB(file, FileVO.class);
     }
@@ -118,6 +120,20 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         if (fileVersion.getContent() instanceof NodeContent) {
             Long nodeId = nodeService.getNodeIdByFileId(file.getId());
             ((NodeContent) fileVersion.getContent()).setNodeId(nodeId);
+        }
+        if (fileVersion.getCfg() instanceof NodeCfg) {
+            NodeCfg nodeCfg = (NodeCfg) fileVersion.getCfg();
+            List<NodeOutput> inputs = nodeCfg.getInputs();
+            inputs.forEach(i -> nodeBizService.getNodeByOutputName(i.getName())
+                    .ifPresent(j -> i.setOutputNodes(Lists.newArrayList(
+                            new OutputNode(j.getId(), j.getName(), j.getOwner()))))
+            );
+            nodeCfg.setOutputs(
+                    listAToListB(nodeOutputService.getOutputNodesByFileId(fileId), NodeOutput.class));
+            nodeCfg.getOutputs().forEach(i -> {
+                String name = i.getName();
+//                Long outputFileId = nodeOutputService.getFileIdByOutputName(name);
+            });
         }
         FileDetailVO fileDetailVO = aToB(fileVersion, FileDetailVO.class);
         fileDetailVO.setBelong(file.getBelong());

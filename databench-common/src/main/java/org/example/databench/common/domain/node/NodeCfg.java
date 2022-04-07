@@ -24,8 +24,8 @@ public class NodeCfg extends QueryCfg implements FileCfg {
     private RetryCfg retryCfg = new RetryCfg();
     private boolean autoRetry = false;
     private Map<String, Object> args = new HashMap<>();
-    private List<Output> inputs = new ArrayList<>();
-    private List<Output> outputs = new ArrayList<>();
+    private List<NodeOutput> inputs = new ArrayList<>();
+    private List<NodeOutput> outputs = new ArrayList<>();
 
     @JsonCreator
     public NodeCfg() {

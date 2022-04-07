@@ -1,16 +1,15 @@
 package org.example.databench.service.biz.impl;
 
 import org.example.databench.common.domain.node.NodeCfg;
-import org.example.databench.common.domain.node.Output;
 import org.example.databench.common.enums.SourceType;
 import org.example.databench.common.utils.Pair;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.persistence.entity.FileVersion;
 import org.example.databench.persistence.entity.Node;
-import org.example.databench.persistence.entity.OutputNode;
+import org.example.databench.persistence.entity.NodeOutput;
 import org.example.databench.service.NodeDepService;
+import org.example.databench.service.NodeOutputService;
 import org.example.databench.service.NodeService;
-import org.example.databench.service.OutputNodeService;
 import org.example.databench.service.WorkspaceService;
 import org.example.databench.service.base.AbstractService;
 import org.example.databench.service.biz.NodeBizService;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 public class NodeBizServiceImpl extends AbstractService implements NodeBizService {
 
     @Autowired
-    private OutputNodeService outputNodeService;
+    private NodeOutputService nodeOutputService;
     @Autowired
     private NodeService nodeService;
     @Autowired
@@ -65,7 +64,7 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
             nodeService.updateVersion(node.getId(), fileVersion.getVersion(), false);
         }
 
-        Map<String, Optional<Long>> map = getOutputNameNodeIdMap(cfg.getInputs());
+        Map<String, Optional<Long>> map = getInputsNodeIds(cfg.getInputs());
         List<Long> parentNodeIds = map.values().stream().filter(Optional::isPresent)
                 .map(Optional::get).collect(Collectors.toList());
         nodeDepService.replaceParentNodeDeps(node.getId(), parentNodeIds, false);
@@ -73,8 +72,8 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
     }
 
     @Override
-    public void checkDependNodes(List<Output> inputs) {
-        Map<String, Optional<Long>> map = getOutputNameNodeIdMap(inputs);
+    public void checkDependNodes(List<org.example.databench.common.domain.node.NodeOutput> inputs) {
+        Map<String, Optional<Long>> map = getInputsNodeIds(inputs);
         List<String> unCommitNode = map.keySet().stream().filter(i -> map.get(i).isEmpty())
                 .collect(Collectors.toList());
         if (!unCommitNode.isEmpty()) {
@@ -82,28 +81,33 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
         }
     }
 
-    private Map<String, Optional<Long>> getOutputNameNodeIdMap(List<Output> inputs) {
-        return inputs.stream().collect(Collectors.toMap(Output::getName,
-                i -> Optional.ofNullable(outputNodeService.getFileIdByOutputName(i.getName()))
-                        .map(j -> {
-                            if (j == -1) {
-                                String root = i.getName().replace("_root", "");
-                                Long id = workspaceService.getIdByName(root);
-                                return nodeService.getWorkspaceNodeId(id);
-                            } else {
-                                return nodeService.getNodeIdByFileId(j);
-                            }
-                        })));
+    private Map<String, Optional<Long>> getInputsNodeIds(List<org.example.databench.common.domain.node.NodeOutput> inputs) {
+        return inputs.stream().collect(Collectors.toMap(org.example.databench.common.domain.node.NodeOutput::getName,
+                i -> getNodeIdByOutputName(i.getName())));
+    }
+
+    private Optional<Long> getNodeIdByOutputName(String name) {
+        if (name.endsWith("_root")) {
+            return Optional.ofNullable(workspaceService.getIdByName(name.substring(0, name.length() - 5)));
+        } else {
+            Long fileId = nodeOutputService.getFileIdByOutputName(name);
+            return Optional.ofNullable(nodeService.getNodeIdByFileId(fileId));
+        }
+    }
+
+    @Override
+    public Optional<Node> getNodeByOutputName(String name) {
+        return getNodeIdByOutputName(name).map(i -> nodeService.selectOneById(i));
     }
 
     @Override
     public boolean createOutputNode(Long fileId, String name, String tableName, SourceType source) {
-        OutputNode outputNode = new OutputNode();
-        outputNode.setFileId(fileId);
-        outputNode.setName(name);
-        outputNode.setSource(source);
-        outputNode.setTableName(tableName);
-        return outputNodeService.insertAny(outputNode);
+        NodeOutput nodeOutput = new NodeOutput();
+        nodeOutput.setFileId(fileId);
+        nodeOutput.setName(name);
+        nodeOutput.setSource(source);
+        nodeOutput.setTableName(tableName);
+        return nodeOutputService.insertAny(nodeOutput);
     }
 
     @Override

@@ -12,7 +12,7 @@ import org.example.databench.persistence.entity.base.UserEntity;
 @EqualsAndHashCode(callSuper = true)
 @TableName("`output_node`")
 @Data
-public class OutputNode extends UserEntity {
+public class NodeOutput extends UserEntity {
     private Long fileId;
     private String name;
     private String tableName;

@@ -5,7 +5,7 @@ import org.example.databench.common.enums.ModuleType;
 import org.example.databench.service.BizService;
 import org.example.databench.service.FileService;
 import org.example.databench.service.FileVersionService;
-import org.example.databench.service.OutputNodeService;
+import org.example.databench.service.NodeOutputService;
 import org.example.databench.service.base.AbstractService;
 import org.example.databench.service.biz.BusinessProcessBizService;
 import org.example.databench.service.domain.node.Edge;
@@ -32,7 +32,7 @@ public class BusinessProcessBizServiceImpl extends AbstractService implements Bu
     @Autowired
     private FileService fileDao;
     @Autowired
-    private OutputNodeService outputNodeService;
+    private NodeOutputService nodeOutputService;
 
     @Override
     public Graph<FileNodeVO> drawBizGraph() {
@@ -44,7 +44,7 @@ public class BusinessProcessBizServiceImpl extends AbstractService implements Bu
                     Long fileId = i.getId();
                     NodeCfg cfg = (NodeCfg) fileVersionService.getCfgByFileIdAndVersion(fileId, i.getVersion());
                     List<Long> parentFileIds = cfg.getInputs().stream().map(j ->
-                            outputNodeService.getFileIdByOutputName(j.getName())).collect(Collectors.toList());
+                            nodeOutputService.getFileIdByOutputName(j.getName())).collect(Collectors.toList());
                     nodes.add(aToB(i, FileNodeVO.class));
                     parentFileIds.forEach(k -> edges.add(new Edge(k, fileId)));
                 });

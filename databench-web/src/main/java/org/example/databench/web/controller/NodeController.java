@@ -1,8 +1,8 @@
 package org.example.databench.web.controller;
 
 import org.example.databench.common.vo.PageVO;
+import org.example.databench.service.NodeOutputService;
 import org.example.databench.service.NodeService;
-import org.example.databench.service.OutputNodeService;
 import org.example.databench.service.biz.NodeBizService;
 import org.example.databench.service.domain.node.Graph;
 import org.example.databench.service.domain.param.NodeFilter;
@@ -29,7 +29,7 @@ public class NodeController extends BaseController {
     @Autowired
     private NodeBizService nodeBizService;
     @Autowired
-    private OutputNodeService outputNodeService;
+    private NodeOutputService nodeOutputService;
 
     public NodeController(@Autowired DaoContext daoContext) {
         super(daoContext);
@@ -37,7 +37,7 @@ public class NodeController extends BaseController {
 
     @GetMapping("output")
     public List<OutputNodeVO> getOutputNodes() {
-        return outputNodeService.getOutputNodes();
+        return nodeOutputService.getOutputNodes();
     }
 
     @PostMapping("page")
