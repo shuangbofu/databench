@@ -1,6 +1,5 @@
 package org.example.databench.common.domain.node;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,9 +8,9 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class OutputNode {
     private Long id;
     private String name;
+    private String fileName;
     private String owner;
 }

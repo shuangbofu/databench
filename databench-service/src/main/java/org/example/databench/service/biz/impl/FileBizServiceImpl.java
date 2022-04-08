@@ -7,7 +7,6 @@ import org.example.databench.common.domain.file.datasource.JdbcParam;
 import org.example.databench.common.domain.node.NodeCfg;
 import org.example.databench.common.domain.node.NodeContent;
 import org.example.databench.common.domain.node.NodeOutput;
-import org.example.databench.common.domain.node.OutputNode;
 import org.example.databench.common.domain.resource.FunctionContent;
 import org.example.databench.common.domain.resource.ResourceContent;
 import org.example.databench.common.enums.*;
@@ -125,14 +124,11 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
             NodeCfg nodeCfg = (NodeCfg) fileVersion.getCfg();
             List<NodeOutput> inputs = nodeCfg.getInputs();
             inputs.forEach(i -> nodeBizService.getNodeByOutputName(i.getName())
-                    .ifPresent(j -> i.setOutputNodes(Lists.newArrayList(
-                            new OutputNode(j.getId(), j.getName(), j.getOwner()))))
-            );
+                    .ifPresent(j -> i.setOutputNodes(Lists.newArrayList(j))));
             nodeCfg.setOutputs(
                     listAToListB(nodeOutputService.getOutputNodesByFileId(fileId), NodeOutput.class));
             nodeCfg.getOutputs().forEach(i -> {
-                String name = i.getName();
-//                Long outputFileId = nodeOutputService.getFileIdByOutputName(name);
+                i.setOutputNodes(nodeBizService.getOutputRefNodes(i.getName()));
             });
         }
         FileDetailVO fileDetailVO = aToB(fileVersion, FileDetailVO.class);
@@ -191,6 +187,18 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         checkContentAndCfg(content, cfg);
         if (cfg != null) {
             // TODO modify biz dag graph
+            if (cfg instanceof NodeCfg) {
+                List<NodeOutput> nowCfgInputs = ((NodeCfg) cfg).getInputs();
+                nodeBizService.removeOutputRef(
+                        nowCfgInputs.stream().map(NodeOutput::getName).collect(Collectors.toList()),
+                        file.getId());
+                nowCfgInputs.forEach(i -> nodeBizService.addOrRemoveOutputRef(i.getName(), file.getId(), true));
+
+                // TODO
+                ((NodeCfg) cfg).getOutputs().forEach(i -> {
+
+                });
+            }
             if (cfg instanceof QueryCfg) {
                 Long datasourceFileId = ((QueryCfg) cfg).getDatasourceFileId();
                 Integer lastVersion = fileVersionService.getLastVersion(datasourceFileId);

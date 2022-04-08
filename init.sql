@@ -142,8 +142,8 @@ CREATE TABLE `node_dep`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT '节点依赖表';
 
-DROP TABLE IF EXISTS `output_node`;
-CREATE TABLE `output_node`
+DROP TABLE IF EXISTS `output`;
+CREATE TABLE `output`
 (
     `id`           bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
     `gmt_create`   bigint(13)          NOT NULL DEFAULT '0' COMMENT '创建时间',
@@ -156,6 +156,7 @@ CREATE TABLE `output_node`
     `table_name`   varchar(128)        NOT NULL DEFAULT '' COMMENT '表名',
     `source`       varchar(8)          NOT NULL DEFAULT '' COMMENT '输出源',
     `file_id`      bigint(20)          NOT NULL DEFAULT '0' COMMENT '文件ID',
+    `ref_file_ids` varchar(128)        NOT NULL DEFAULT '' COMMENT '引用当前输出的下游文件ID集合',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT '节点输出表';

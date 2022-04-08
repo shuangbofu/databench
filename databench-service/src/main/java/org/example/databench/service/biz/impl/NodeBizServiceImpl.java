@@ -1,21 +1,20 @@
 package org.example.databench.service.biz.impl;
 
 import org.example.databench.common.domain.node.NodeCfg;
+import org.example.databench.common.domain.node.OutputNode;
 import org.example.databench.common.enums.SourceType;
 import org.example.databench.common.utils.Pair;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.persistence.entity.FileVersion;
 import org.example.databench.persistence.entity.Node;
 import org.example.databench.persistence.entity.NodeOutput;
-import org.example.databench.service.NodeDepService;
-import org.example.databench.service.NodeOutputService;
-import org.example.databench.service.NodeService;
-import org.example.databench.service.WorkspaceService;
+import org.example.databench.service.*;
 import org.example.databench.service.base.AbstractService;
 import org.example.databench.service.biz.NodeBizService;
 import org.example.databench.service.domain.node.Edge;
 import org.example.databench.service.domain.node.Graph;
 import org.example.databench.service.domain.vo.NodeVO;
+import org.example.databench.service.domain.vo.OutputNodeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +39,8 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
     private NodeDepService nodeDepService;
     @Autowired
     private WorkspaceService workspaceService;
+    @Autowired
+    private FileService fileService;
 
     @Transactional
     @Override
@@ -61,7 +62,7 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
             node = new Node();
             nodeService.insertAny(copyToNode.apply(node));
         } else {
-            nodeService.updateVersion(node.getId(), fileVersion.getVersion(), false);
+            nodeService.updateVersion(node.getId(), fileVersion.getVersion(), file.getName(), false);
         }
 
         Map<String, Optional<Long>> map = getInputsNodeIds(cfg.getInputs());
@@ -96,8 +97,28 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
     }
 
     @Override
-    public Optional<Node> getNodeByOutputName(String name) {
-        return getNodeIdByOutputName(name).map(i -> nodeService.selectOneById(i));
+    public Optional<OutputNode> getNodeByOutputName(String name) {
+        return getNodeIdByOutputName(name)
+                .map(i -> node2Output(nodeService.selectOneById(i), ""));
+    }
+
+    @Override
+    public List<OutputNode> getOutputRefNodes(String name) {
+        List<Long> outputRefFieldIds = nodeOutputService.getOutputRefFileIds(name);
+        return outputRefFieldIds.stream().map(i -> node2Output(
+                nodeService.getNodeByFileId(i),
+                fileService.getName(i)
+        )).collect(Collectors.toList());
+    }
+
+    private OutputNode node2Output(Node node, String fileName) {
+        OutputNode outputNode = new OutputNode();
+        if (node != null) {
+            outputNode.setId(node.getId());
+            outputNode.setName(node.getName());
+        }
+        outputNode.setFileName(fileName);
+        return outputNode;
     }
 
     @Override
@@ -122,6 +143,33 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
     @Override
     public Graph<NodeVO> getNodeGraph(Long nodeId, Integer depth, boolean parent, boolean prod) {
         return setUpGraph(new Graph<>(), depth, parent, prod, nodeId);
+    }
+
+    @Override
+    public boolean addOrRemoveOutputRef(String name, Long fileId, boolean add) {
+        List<Long> outputRefFieldIds = nodeOutputService.getOutputRefFileIds(name);
+        if (add) {
+            if (!outputRefFieldIds.contains(fileId)) {
+                outputRefFieldIds.add(fileId);
+            }
+        } else {
+            outputRefFieldIds.remove(fileId);
+        }
+        return nodeOutputService.updateOutputRefFileIds(name, outputRefFieldIds);
+    }
+
+    @Override
+    public List<OutputNodeVO> getOutputNodes() {
+        return listAToListB(nodeOutputService.getOutputNodes(), OutputNodeVO.class, (a, b) -> {
+            b.setFileName(fileService.getName(a.getFileId()));
+        });
+    }
+
+    @Override
+    public void removeOutputRef(List<String> names, Long fileId) {
+        List<NodeOutput> outputNodes = nodeOutputService.getOutputNodesByRefFileId(fileId);
+        outputNodes.stream().filter(i -> !names.contains(i.getName()))
+                .forEach(i -> addOrRemoveOutputRef(i.getName(), fileId, false));
     }
 
     private Graph<NodeVO> setUpGraph(Graph<NodeVO> graph, Integer depth, boolean parent, boolean prod, Long nodeId) {

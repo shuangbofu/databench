@@ -9,4 +9,5 @@ import lombok.Data;
 public class OutputNodeVO {
     private String name;
     private String tableName;
+    private String fileName;
 }

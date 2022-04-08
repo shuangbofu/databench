@@ -13,7 +13,7 @@ import org.example.databench.service.domain.vo.NodeVO;
 public interface NodeService extends BaseService<Node> {
     Node getNodeByFileId(Long fileId);
 
-    boolean updateVersion(Long nodeId, Integer version, boolean isProd);
+    boolean updateVersion(Long nodeId, Integer version, String name, boolean isProd);
 
     Long getNodeIdByFileId(Long fileId);
 

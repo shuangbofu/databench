@@ -1,13 +1,14 @@
 package org.example.databench.service.biz;
 
 import org.example.databench.common.domain.node.NodeOutput;
+import org.example.databench.common.domain.node.OutputNode;
 import org.example.databench.common.enums.SourceType;
 import org.example.databench.common.utils.Pair;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.persistence.entity.FileVersion;
-import org.example.databench.persistence.entity.Node;
 import org.example.databench.service.domain.node.Graph;
 import org.example.databench.service.domain.vo.NodeVO;
+import org.example.databench.service.domain.vo.OutputNodeVO;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +21,19 @@ public interface NodeBizService {
 
     void checkDependNodes(List<NodeOutput> inputs);
 
-    Optional<Node> getNodeByOutputName(String name);
+    Optional<OutputNode> getNodeByOutputName(String name);
+
+    List<OutputNode> getOutputRefNodes(String name);
 
     boolean createOutputNode(Long fileId, String name, String tableName, SourceType source);
 
     Pair<Integer, Integer> getExecNodeVersion(Long fileId);
 
     Graph<NodeVO> getNodeGraph(Long nodeId, Integer depth, boolean parent, boolean prod);
+
+    boolean addOrRemoveOutputRef(String name, Long fileId, boolean add);
+
+    List<OutputNodeVO> getOutputNodes();
+
+    void removeOutputRef(List<String> names, Long fileId);
 }

@@ -27,8 +27,10 @@ public class NodeServiceImpl extends CommonService<Node, NodeDao> implements Nod
     }
 
     @Override
-    public boolean updateVersion(Long nodeId, Integer version, boolean isProd) {
-        return updateById(nodeId, q -> q.lambda().set(isProd ? Node::getProdVersion : Node::getDevVersion, version));
+    public boolean updateVersion(Long nodeId, Integer version, String name, boolean isProd) {
+        return updateById(nodeId, q -> q.lambda()
+                .set(Node::getName, name)
+                .set(isProd ? Node::getProdVersion : Node::getDevVersion, version));
     }
 
     @Override

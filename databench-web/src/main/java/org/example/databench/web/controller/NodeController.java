@@ -37,7 +37,7 @@ public class NodeController extends BaseController {
 
     @GetMapping("output")
     public List<OutputNodeVO> getOutputNodes() {
-        return nodeOutputService.getOutputNodes();
+        return nodeBizService.getOutputNodes();
     }
 
     @PostMapping("page")

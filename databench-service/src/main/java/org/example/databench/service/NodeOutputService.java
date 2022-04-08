@@ -2,7 +2,6 @@ package org.example.databench.service;
 
 import org.example.databench.persistence.entity.NodeOutput;
 import org.example.databench.service.base.BaseService;
-import org.example.databench.service.domain.vo.OutputNodeVO;
 
 import java.util.List;
 
@@ -12,7 +11,13 @@ import java.util.List;
 public interface NodeOutputService extends BaseService<NodeOutput> {
     Long getFileIdByOutputName(String name);
 
-    List<OutputNodeVO> getOutputNodes();
+    List<NodeOutput> getOutputNodes();
 
     List<NodeOutput> getOutputNodesByFileId(Long fileId);
+
+    List<NodeOutput> getOutputNodesByRefFileId(Long fileId);
+
+    List<Long> getOutputRefFileIds(String name);
+
+    boolean updateOutputRefFileIds(String name, List<Long> fileIds);
 }
