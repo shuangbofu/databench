@@ -12,8 +12,6 @@ import org.example.databench.executor.domain.Log;
 public interface JobApi {
     Log fetchOffsetLog(String jobId, Long offset, Long length);
 
-//    Log fetchLog(String jobId);
-
     boolean isDone(String jobId);
 
     boolean cancel(String jobId);

@@ -21,6 +21,7 @@ public enum FileType {
 
     // 数据库
     mysql(FileCategory.database),
+    hive(FileCategory.database),
 
     // 通用
     virtual(FileCategory.common),
@@ -29,6 +30,7 @@ public enum FileType {
     jdbc_mysql(FileCategory.datasource),
     jdbc_hive(FileCategory.datasource),
 
+    markdown(FileCategory.bigdata),
     ;
 
     private final FileCategory category;

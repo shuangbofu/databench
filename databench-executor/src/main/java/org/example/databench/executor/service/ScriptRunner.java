@@ -7,6 +7,8 @@ import org.example.databench.executor.script.executor.CommandExecutor;
 import org.example.databench.executor.script.executor.DefaultCommandExecutor;
 import org.example.databench.executor.script.executor.ExecResult;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,40 +19,25 @@ public class ScriptRunner extends AbstractJobRunner {
 
     private static final Map<String, CommandExecutor> executors = new ConcurrentHashMap<>();
 
-    public static void main(String[] args) throws InterruptedException {
-        CommandExecutor executor = new DefaultCommandExecutor()
-                .logHandler((line, logLevel, logType) -> {
-                    System.out.println(line);
-                });
-
-        new Thread(() -> {
-            executor.execScript("#!/bin/bash\n" +
-                    "for i in $(seq 300)\n" +
-                    "do\n" +
-                    "    sleep 1\n" +
-                    "    echo $i\n" +
-                    "done");
-        }).start();
-
-        Thread.sleep(2000);
-        executor.stop();
-
-    }
-
     @Override
     protected void execute(FileType fileType, FileContent fileContent, FileCfg fileCfg, JobLogger logger) throws Exception {
+        String cmd = null;
+        String code = fileContent.getCode();
         if (fileType.equals(FileType.shell)) {
-            String code = fileContent.getCode();
-            CommandExecutor executor = new DefaultCommandExecutor()
-                    .logHandler((line, logLevel, logType) -> {
-                        logger.info(line);
-                    });
-            logger.info("代码是" + code);
-            executors.put(jobId, executor);
-            ExecResult execResult = executor.execScript(code);
-            if (!execResult.isSuccess()) {
-                throw new RuntimeException(execResult.getException());
-            }
+            cmd = code;
+            logger.info("代码是\n" + cmd);
+        } else if (fileType.equals(FileType.sparkSql)) {
+            String sparkSqlFilePath = "/tmp/" + jobId + ".sparkSql";
+            Files.writeString(Path.of(sparkSqlFilePath), code);
+            cmd = "spark-sql -f " + sparkSqlFilePath;
+        }
+        CommandExecutor executor = new DefaultCommandExecutor()
+                .logHandler((line, logLevel, logType) -> logger.info(line));
+        executors.put(jobId, executor);
+        cmd = "source ~/.bashrc;\n" + cmd;
+        ExecResult execResult = executor.execScript(cmd);
+        if (!execResult.isSuccess()) {
+            throw new RuntimeException(execResult.getException());
         }
     }
 

@@ -14,11 +14,11 @@ public enum FileCategory {
 
     file("文件"),
     datasource("数据源"),
-    executor("计算资源"),
+    compute("计算资源"),
+    executor("执行资源"),
 
     undefined("未定义"),
     ;
-
 
     private final String desc;
 

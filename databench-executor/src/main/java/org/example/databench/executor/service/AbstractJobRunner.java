@@ -138,12 +138,17 @@ public abstract class AbstractJobRunner implements JobApi {
         };
         Future<?> future = pool.submit(() -> {
             boolean success = false;
+            long start = System.currentTimeMillis();
             try {
                 execute(fileType, fileContent, fileCfg, jobLogger);
                 success = true;
             } catch (Exception e) {
                 jobLogger.error("运行异常", e);
             } finally {
+                long end = System.currentTimeMillis();
+                long duration = end - start;
+                jobLogger.info("执行耗时" + (duration / 1000 < 0 ? (duration + "ms") :
+                        ((Math.abs((double) duration / 1000)) + "s")));
                 String msg = "运行" + (success ? "成功" : "失败");
                 if (success) {
                     jobLogger.info(msg);

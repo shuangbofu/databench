@@ -3,7 +3,6 @@ package org.example.databench.common.domain.node;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.example.databench.common.domain.file.FileCfg;
 import org.example.databench.common.domain.file.QueryCfg;
 import org.example.databench.common.enums.ScheduleType;
 
@@ -17,7 +16,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class NodeCfg extends QueryCfg implements FileCfg {
+public class NodeCfg extends QueryCfg {
     private ScheduleType scheduleType = ScheduleType.normal;
     private String cronExpression = "00 04 00 * * ?";
     private Integer timeout = 60;

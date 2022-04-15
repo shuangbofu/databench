@@ -5,15 +5,14 @@ package org.example.databench.starter;
 
 import com.google.common.collect.Lists;
 import org.example.databench.common.domain.node.NodeCfg;
-import org.example.databench.common.domain.node.Output;
 import org.example.databench.common.enums.SourceType;
 import org.example.databench.persistence.dao.FileDao;
 import org.example.databench.persistence.dao.FileVersionDao;
-import org.example.databench.persistence.dao.OutputNodeDao;
+import org.example.databench.persistence.dao.NodeOutputDao;
 import org.example.databench.persistence.dao.WorkspaceDao;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.persistence.entity.FileVersion;
-import org.example.databench.persistence.entity.OutputNode;
+import org.example.databench.persistence.entity.NodeOutput;
 import org.example.databench.persistence.entity.Workspace;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,10 +26,10 @@ import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class TestOutputNode {
+public class TestNodeOutputNode {
 
     @Autowired
-    private OutputNodeDao outputNodeDao;
+    private NodeOutputDao nodeOutputDao;
     @Autowired
     private FileDao fileDao;
     @Autowired
@@ -40,17 +39,17 @@ public class TestOutputNode {
 
     @Test
     public void test() {
-        OutputNode rootNode = new OutputNode();
+        NodeOutput rootNode = new NodeOutput();
         rootNode.setFileId(0L);
         rootNode.setName("test_root");
-        outputNodeDao.insert(rootNode);
+        nodeOutputDao.insert(rootNode);
         Lists.newArrayList(1L, 3L, 5L).forEach(j -> {
             File i = fileDao.selectOneById(j);
             String workspaceName = workspaceDao.selectValueById(Workspace::getName, i.getWorkspaceId());
-            OutputNode outputNode = new OutputNode();
-            outputNode.setFileId(j);
-            outputNode.setName(workspaceName + "." + i.getId() + "_out");
-            outputNodeDao.insert(outputNode);
+            NodeOutput nodeOutput = new NodeOutput();
+            nodeOutput.setFileId(j);
+            nodeOutput.setName(workspaceName + "." + i.getId() + "_out");
+            nodeOutputDao.insert(nodeOutput);
         });
     }
 
@@ -66,15 +65,15 @@ public class TestOutputNode {
                 .eq(FileVersion::getFileId, file.getId())
                 .eq(FileVersion::getVersion, file.getVersion())
         );
-        List<Output> outputs = Arrays.stream(parents).map(i -> {
-            OutputNode node = outputNodeDao.selectOneBy(q -> q.lambda().eq(OutputNode::getFileId, i));
-            Output output = new Output();
-            output.setName(node.getName());
-            output.setSource(SourceType.manual_record);
-            return output;
+        List<org.example.databench.common.domain.node.NodeOutput> nodeOutputs = Arrays.stream(parents).map(i -> {
+            NodeOutput node = nodeOutputDao.selectOneBy(q -> q.lambda().eq(NodeOutput::getFileId, i));
+            org.example.databench.common.domain.node.NodeOutput nodeOutput = new org.example.databench.common.domain.node.NodeOutput();
+            nodeOutput.setName(node.getName());
+            nodeOutput.setSource(SourceType.manual_record);
+            return nodeOutput;
         }).collect(Collectors.toList());
         NodeCfg cfg = (NodeCfg) fileVersion.getCfg();
-        cfg.setInputs(outputs);
+        cfg.setInputs(nodeOutputs);
         fileVersion.setCfg(cfg);
 //        fileVersionDao.
 //                updateBy(q -> q.lambda()

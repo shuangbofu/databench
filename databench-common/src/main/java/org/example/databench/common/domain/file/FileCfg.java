@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.example.databench.common.domain.node.NodeCfg;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.EXTERNAL_PROPERTY;
 
 /**
@@ -17,8 +20,9 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.EXTERNAL_PROPERTY
         @JsonSubTypes.Type(value = ApiCfg.class, name = "aip"),
         @JsonSubTypes.Type(value = DatasourceCfg.class, name = "datasource"),
 })
-public interface FileCfg {
+public abstract class FileCfg {
+    private List<Long> docFileList = new ArrayList<>();
 
-    class EmptyFiLeCfg implements FileCfg {
+    public static class EmptyFiLeCfg extends FileCfg {
     }
 }

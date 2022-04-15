@@ -7,7 +7,7 @@ import org.example.databench.common.domain.file.datasource.DatasourceParam;
  * Created by shuangbofu on 2022/3/28 14:58
  */
 @Data
-public class DatasourceCfg implements FileCfg {
+public class DatasourceCfg extends FileCfg {
     private DatasourceParam param;
 
     public DatasourceCfg() {
