@@ -1,4 +1,4 @@
-package org.example.databench.executor.script;
+package org.example.databench.executor.script.constant;
 
 public interface Constants {
     String AT = "@";

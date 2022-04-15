@@ -1,7 +1,7 @@
 package org.example.databench.executor.script.executor;
 
 import org.apache.commons.exec.*;
-import org.example.databench.executor.script.Constants;
+import org.example.databench.executor.script.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

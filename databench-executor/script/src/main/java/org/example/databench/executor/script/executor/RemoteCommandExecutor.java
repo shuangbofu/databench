@@ -2,7 +2,7 @@ package org.example.databench.executor.script.executor;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.exec.CommandLine;
-import org.example.databench.executor.script.Constants;
+import org.example.databench.executor.script.constant.Constants;
 import org.example.databench.executor.script.log.CommandLogHandler;
 import org.example.databench.executor.script.utils.ShellUtils;
 import org.example.databench.lib.utils.NetUtils;

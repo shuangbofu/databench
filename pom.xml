@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <groupId>org.example.databench</groupId>
     <artifactId>databench</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
@@ -41,49 +41,49 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.example</groupId>
+                <groupId>org.example.databench</groupId>
                 <artifactId>databench-executor</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
-                <artifactId>databench-executor-api</artifactId>
+                <groupId>org.example.databench</groupId>
+                <artifactId>executor-api</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
-                <artifactId>databench-executor-base</artifactId>
+                <groupId>org.example.databench</groupId>
+                <artifactId>executor-base</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
+                <groupId>org.example.databench</groupId>
                 <artifactId>databench-lib</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
+                <groupId>org.example.databench</groupId>
                 <artifactId>databench-common</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
+                <groupId>org.example.databench</groupId>
                 <artifactId>databench-web</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
+                <groupId>org.example.databench</groupId>
                 <artifactId>databench-service</artifactId>
                 <version>${databench.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.example</groupId>
+                <groupId>org.example.databench</groupId>
                 <artifactId>databench-persistence</artifactId>
                 <version>${databench.version}</version>
             </dependency>

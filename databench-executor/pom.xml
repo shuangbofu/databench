@@ -4,18 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>databench</artifactId>
-        <groupId>org.example</groupId>
+        <groupId>org.example.databench</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>databench-executor</artifactId>
+
     <packaging>pom</packaging>
     <modules>
-        <module>databench-executor-api</module>
-        <module>databench-executor-script</module>
-        <module>databench-executor-datasourceX</module>
-        <module>databench-executor-base</module>
+        <module>api</module>
+        <module>script</module>
+        <module>datasourceX</module>
+        <module>base</module>
     </modules>
 
     <properties>

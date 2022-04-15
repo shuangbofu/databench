@@ -3,7 +3,7 @@ package org.example.databench.executor.script.executor;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.example.databench.executor.script.Constants;
+import org.example.databench.executor.script.constant.Constants;
 import org.example.databench.executor.script.log.CommandLogHandler;
 import org.example.databench.executor.script.log.LogType;
 import org.example.databench.lib.utils.FileUtils;

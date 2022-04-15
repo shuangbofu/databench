@@ -8,6 +8,7 @@ import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.query.QueryResult;
 import org.example.executor.base.service.AbstractLocalJobRunner;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -35,7 +36,9 @@ public class ScriptRunner extends AbstractLocalJobRunner implements JobApi {
         CommandExecutor executor = new DefaultCommandExecutor()
                 .logHandler((line, logLevel, logType) -> logger.info(line));
         executors.put(jobId, executor);
-        cmd = "source ~/.bashrc;\n" + cmd;
+        if (new File("~/.bashrc").exists()) {
+            cmd = "source ~/.bashrc;\n" + cmd;
+        }
         ExecResult execResult = executor.execScript(cmd);
         if (!execResult.isSuccess()) {
             throw new RuntimeException(execResult.getException());
