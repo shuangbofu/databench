@@ -7,8 +7,9 @@ import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.query.QueryResult;
 import org.example.executor.base.service.AbstractLocalExecutor;
+import org.example.executor.base.service.log.ExecuteLogger;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -22,27 +23,35 @@ public class ScriptExecutor extends AbstractLocalExecutor implements ExecutableA
     private static final Map<String, CommandExecutor> executors = new ConcurrentHashMap<>();
 
     @Override
-    protected void execute(ApiParam param, JobLogger logger) throws Exception {
-        String cmd = null;
+    protected void execute(ApiParam param, String jobId, ExecuteLogger LOG) throws Exception {
+        String type = param.getType();
         String code = param.getCode();
-        if (param.getType().equals("shell")) {
-            cmd = code;
-            logger.info("代码是\n" + cmd);
-        } else if (param.getType().equals("sparkSql")) {
-            String sparkSqlFilePath = "/tmp/" + jobId + ".sparkSql";
-            Files.writeString(Path.of(sparkSqlFilePath), code);
-            cmd = "spark-sql -f " + sparkSqlFilePath;
-        }
+        String command = buildCommand(LOG, jobId, type, code);
         CommandExecutor executor = new DefaultCommandExecutor()
-                .logHandler((line, logLevel, logType) -> logger.info(line));
+                .logHandler((line, logLevel, logType) -> LOG.info(line));
         executors.put(jobId, executor);
-        if (new File("~/.bashrc").exists()) {
-            cmd = "source ~/.bashrc;\n" + cmd;
-        }
-        ExecResult execResult = executor.execScript(cmd);
+        ExecResult execResult = executor.execScript(command);
         if (!execResult.isSuccess()) {
             throw new RuntimeException(execResult.getException());
         }
+    }
+
+    private String buildCommand(ExecuteLogger LOG, String jobId, String type, String code) throws IOException {
+        LOG.info("代码是：\n" + code);
+        String command;
+        if (type.equals("shell")) {
+            command = code;
+        } else if (type.equals("sparkSql")) {
+            String sparkSqlFilePath = "/tmp/" + jobId + ".sparkSql";
+            Files.writeString(Path.of(sparkSqlFilePath), code);
+            command = "spark-sql -f " + sparkSqlFilePath;
+        } else {
+            throw new RuntimeException("Not supported " + type);
+        }
+        if (Files.exists(Path.of("~/.bashrc"))) {
+            command = "source ~/.bashrc;\n" + command;
+        }
+        return command;
     }
 
     @Override
@@ -50,6 +59,7 @@ public class ScriptExecutor extends AbstractLocalExecutor implements ExecutableA
         if (executors.containsKey(jobId)) {
             return executors.get(jobId).stop();
         }
+        super.cancel(jobId);
         return false;
     }
 

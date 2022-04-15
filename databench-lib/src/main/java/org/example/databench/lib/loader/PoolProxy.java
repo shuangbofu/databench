@@ -21,7 +21,7 @@ public class PoolProxy<T> {
         pool = new ThreadPoolExecutor(10, 10, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
                 new ThreadFactoryBuilder()
-                        .setNameFormat(api.getClass().getSimpleName() + "_" + getClass().getSimpleName() + "%s").build());
+                        .setNameFormat(api.getClass().getSimpleName() + "_" + getClass().getSimpleName() + "%d").build());
     }
 
     public void setTimeout(int timeout) {

@@ -1,21 +1,21 @@
 package org.example.executor.base.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.example.databench.common.enums.JobHistoryStatus;
-import org.example.databench.lib.utils.JSONUtils;
 import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.example.executor.base.service.db.Db;
+import org.example.executor.base.service.db.LocalFileDb;
+import org.example.executor.base.service.log.ExecuteLogger;
+import org.example.executor.base.service.log.MemoLogStore;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,22 +26,13 @@ import java.util.stream.Collectors;
  * Created by shuangbofu on 2022/4/1 22:14
  */
 public abstract class AbstractLocalExecutor implements ExecutableApi {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLocalExecutor.class);
-    private static final ExecutorService pool = Executors.newFixedThreadPool(20);
-    private static final Map<String, Future<?>> futureMap = new ConcurrentHashMap<>();
-    private static final Map<String, List<String>> logLines = new ConcurrentHashMap<>();
-    private static final String cacheDir = "/tmp/databench/";
-    private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    protected String jobId;
-
-    private void log(LogType logType, String msg) {
-        msg = dateFormatter.format(new Date()) + " [" + logType + "] " + msg;
-        logLines.computeIfAbsent(jobId, j -> new ArrayList<>()).add(msg);
-    }
-
-    private void log(LogType logType, String msg, Throwable e) {
-        log(logType, msg + "\n" + ExceptionUtils.getStackTrace(e));
-    }
+    private static final String STATUS_KEY = "status";
+    private static final String LOG_KEY = "log";
+    private final ExecutorService pool = Executors.newFixedThreadPool(20, new ThreadFactoryBuilder()
+            .setNameFormat("executor-pool-%d").build());
+    private final Map<String, Future<?>> futures = new ConcurrentHashMap<>();
+    private final Map<String, Db> dbs = new ConcurrentHashMap<>();
+    private final Map<String, MemoLogStore> logStores = new ConcurrentHashMap<>();
 
     private String initJobId() {
         return RandomStringUtils.randomAlphanumeric(6);
@@ -50,8 +41,9 @@ public abstract class AbstractLocalExecutor implements ExecutableApi {
     @Override
     public Log fetchOffsetLog(String jobId, Long offset, Long length) {
         Log log = new Log();
-        List<String> lines = Optional.ofNullable(logLines.get(jobId))
-                .orElseGet(() -> readFile(jobId, "log", String.class)
+        List<String> strings = Optional.ofNullable(logStores.get(jobId)).map(MemoLogStore::getLogLines).orElse(null);
+        List<String> lines = Optional.ofNullable(strings)
+                .orElseGet(() -> getDb(jobId).get(LOG_KEY, String.class)
                         .map(i -> Arrays.stream(i.split("\n")).collect(Collectors.toList()))
                         .orElse(Lists.newArrayList()));
         List<String> subList = lines.subList(
@@ -64,118 +56,61 @@ public abstract class AbstractLocalExecutor implements ExecutableApi {
 
     @Override
     public boolean isDone(String jobId) {
-        return Optional.ofNullable(futureMap.get(jobId)).map(Future::isDone).orElse(true);
+        return Optional.ofNullable(futures.get(jobId)).map(Future::isDone).orElse(true);
     }
 
     @Override
     public boolean cancel(String jobId) {
-        if (futureMap.containsKey(jobId)) {
-            futureMap.get(jobId).cancel(true);
+        if (futures.containsKey(jobId)) {
+            futures.get(jobId).cancel(true);
         }
         return true;
     }
 
+    protected Db getDb(String jobId) {
+        return dbs.computeIfAbsent(jobId, i -> new LocalFileDb(jobId));
+    }
+
     @Override
     public JobHistoryStatus getStatus(String jobId) {
-        return readFile(jobId, "status", Boolean.class)
+        return getDb(jobId).get(STATUS_KEY, Boolean.class)
                 .filter(i -> i)
                 .map(i -> JobHistoryStatus.success)
                 .orElse(JobHistoryStatus.failed);
     }
 
-    protected void saveFile(Object object, String suffix) {
-        try {
-            String content;
-            if (object instanceof String) {
-                content = object.toString();
-            } else {
-                content = JSONUtils.toJSONString(object);
-            }
-            Files.writeString(Path.of(cacheDir + jobId + "." + suffix), content);
-        } catch (IOException e) {
-            LOGGER.error("Write " + suffix + " error", e);
-        }
-    }
-
-    protected <T> Optional<T> readFile(String jobId, String suffix, Class<T> clazz) {
-        try {
-            String str = Files.readString(Path.of(cacheDir + jobId + "." + suffix));
-            if (clazz != null && String.class.isAssignableFrom(clazz)) {
-                return Optional.ofNullable((T) str);
-            }
-            return Optional.ofNullable(JSONUtils.parseObject(str, clazz));
-        } catch (Exception e) {
-            LOGGER.error("Get " + suffix + " error", e);
-        }
-        return Optional.empty();
-    }
-
     @Override
     public String executeFileJob(ApiParam param) {
-        jobId = initJobId();
-        JobLogger jobLogger = new JobLogger() {
-            @Override
-            public void warn(String msg) {
-                log(LogType.WARN, msg);
-            }
-
-            @Override
-            public void error(String msg) {
-                log(LogType.ERROR, msg);
-            }
-
-            @Override
-            public void info(String msg) {
-                log(LogType.INFO, msg);
-            }
-
-            @Override
-            public void error(String msg, Throwable e) {
-                log(LogType.ERROR, msg, e);
-            }
-        };
-        Future<?> future = pool.submit(() -> {
+        String jobId = initJobId();
+        LocalFileDb db = new LocalFileDb(jobId);
+        MemoLogStore LOG = new MemoLogStore();
+        logStores.put(jobId, LOG);
+        futures.put(jobId, pool.submit(() -> {
             boolean success = false;
             long start = System.currentTimeMillis();
             try {
-                execute(param, jobLogger);
+                execute(param, jobId, LOG);
                 success = true;
             } catch (Exception e) {
-                jobLogger.error("运行异常", e);
+                LOG.error("运行异常", e);
             } finally {
                 long end = System.currentTimeMillis();
                 long duration = end - start;
-                jobLogger.info("执行耗时" + (duration / 1000 < 0 ? (duration + "ms") :
+                LOG.info("执行耗时" + (duration / 1000 < 0 ? (duration + "ms") :
                         ((Math.abs((double) duration / 1000)) + "s")));
                 String msg = "运行" + (success ? "成功" : "失败");
                 if (success) {
-                    jobLogger.info(msg);
+                    LOG.info(msg);
                 } else {
-                    jobLogger.error(msg);
+                    LOG.error(msg);
                 }
-                futureMap.remove(jobId);
-                saveFile(String.join("\n", logLines.get(jobId)), "log");
-                saveFile(success, "status");
+                futures.remove(jobId);
+                db.set(LOG_KEY, String.join("\n", LOG.getLogLines()));
+                db.set(STATUS_KEY, success);
             }
-        });
-        futureMap.put(jobId, future);
-        LOGGER.info("futureMap: {}", futureMap.hashCode());
+        }));
         return jobId;
     }
 
-    abstract protected void execute(ApiParam param, JobLogger logger) throws Exception;
-
-    enum LogType {
-        WARN, ERROR, INFO
-    }
-
-    public interface JobLogger {
-        void warn(String msg);
-
-        void error(String msg);
-
-        void info(String msg);
-
-        void error(String msg, Throwable e);
-    }
+    abstract protected void execute(ApiParam param, String jobId, ExecuteLogger LOG) throws Exception;
 }

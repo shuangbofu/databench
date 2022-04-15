@@ -8,6 +8,7 @@ import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.query.QueryResult;
 import org.example.executor.base.service.AbstractLocalExecutor;
+import org.example.executor.base.service.log.ExecuteLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.Map;
  * Created by shuangbofu on 2022/3/30 01:07
  */
 public class DatasourceXExecutor extends AbstractLocalExecutor implements ExecutableApi {
+    private static final String QUERY_RESULT_KEY = "json";
 
     @Override
     public boolean checkConnection(ApiParam param) {
@@ -24,19 +26,19 @@ public class DatasourceXExecutor extends AbstractLocalExecutor implements Execut
 
     @Override
     public QueryResult fetchResult(String jobId) {
-        return readFile(jobId, "json", QueryResult.class).orElse(new QueryResult());
+        return getDb(jobId).get(QUERY_RESULT_KEY, QueryResult.class).orElse(new QueryResult());
     }
 
     @Override
-    protected void execute(ApiParam param, JobLogger logger) {
+    protected void execute(ApiParam param, String jobId, ExecuteLogger LOG) {
         String sql = param.getSql();
         DatasourceType datasourceType = param.getDatasourceType();
         SqlQueryDTO query = SqlQueryDTO.builder().sql(sql).build();
         ISourceDTO datasource = DatasourceUtils.getDatasource(param.getJdbcParam(), datasourceType);
         IClient client = DatasourceUtils.getDatasourceClient(datasourceType);
-        logger.info("开始执行SQL:" + sql);
+        LOG.info("开始执行SQL:" + sql);
         List<Map<String, Object>> result = client.executeQuery(datasource, query);
-        saveFile(new QueryResult(result), "json");
+        getDb(jobId).set(QUERY_RESULT_KEY, new QueryResult(result));
     }
 
 }
