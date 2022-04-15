@@ -2,7 +2,7 @@ package org.example.databench.service.biz.impl;
 
 import org.example.databench.service.biz.DatasourceBizService;
 import org.example.databench.service.manager.ExecutorManager;
-import org.example.executor.api.api.JobApi;
+import org.example.executor.api.ExecutableApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +17,6 @@ public class DatasourceBizServiceImpl implements DatasourceBizService {
 
     @Override
     public boolean checkConnection(Long fileId) {
-        return executorManager.invokeByFileId(fileId, JobApi::checkConnection);
+        return executorManager.invokeByFileId(fileId, ExecutableApi::checkConnection);
     }
 }

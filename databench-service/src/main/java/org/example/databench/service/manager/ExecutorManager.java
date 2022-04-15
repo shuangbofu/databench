@@ -16,7 +16,7 @@ import org.example.databench.service.FileService;
 import org.example.databench.service.FileVersionService;
 import org.example.databench.service.JobHistoryService;
 import org.example.databench.service.base.AbstractService;
-import org.example.executor.api.api.JobApi;
+import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,8 @@ public class ExecutorManager extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorManager.class);
     private final Map<String, Long> fileIdCache = new ConcurrentHashMap<>();
-    private final Map<String, JobApi> apiCache = new ConcurrentHashMap<>();
+    private final Map<String, ExecutableApi> apiCache = new ConcurrentHashMap<>();
+    private final Map<String, ExecutableApi> historyApiCache = new ConcurrentHashMap<>();
     @Autowired
     private JobHistoryService jobHistoryService;
     @Autowired
@@ -47,12 +48,12 @@ public class ExecutorManager extends AbstractService {
     @Autowired
     private FileVersionService fileVersionService;
 
-    public <T> T invokeByFileId(Long fileId, FileTuple fileTuple, BiFunction<JobApi, ApiParam, T> function) {
+    public <T> T invokeByFileId(Long fileId, FileTuple fileTuple, BiFunction<ExecutableApi, ApiParam, T> function) {
         ApiParam apiParam = buildApiParam(fileId, fileTuple);
-        return function.apply(getJobApi(apiParam.getRunnerType()), apiParam);
+        return function.apply(getJobApi(apiParam.getExecutorType()), apiParam);
     }
 
-    public <T> T invokeByFileId(Long fileId, BiFunction<JobApi, ApiParam, T> function) {
+    public <T> T invokeByFileId(Long fileId, BiFunction<ExecutableApi, ApiParam, T> function) {
         return invokeByFileId(fileId, null, function);
     }
 
@@ -86,12 +87,12 @@ public class ExecutorManager extends AbstractService {
                 // FIXME
                 param.setDatasourceType(FileType.valueOf(datasourceFile.getContent().getFileType()).toDsType());
             }
-            param.setRunnerType("datasourceX");
+            param.setExecutorType("datasourceX");
         } else if (file.getModuleType().isDevelop()) {
             param.setCode(content.getCode());
-            param.setRunnerType("script");
+            param.setExecutorType("script");
         } else if (file.getCategory().equals(FileCategory.datasource)) {
-            param.setRunnerType("datasourceX");
+            param.setExecutorType("datasourceX");
             param.setDatasourceType(FileType.valueOf(file.getFileType()).toDsType());
             DatasourceCfg datasourceCfg = (DatasourceCfg) fileVersion.getCfg();
             if (datasourceCfg.getParam() instanceof JdbcParam) {
@@ -116,18 +117,22 @@ public class ExecutorManager extends AbstractService {
         throw new RuntimeException("Not supported");
     }
 
-    public <T> T invokeByHistoryId(String historyId, Function<JobApi, T> function) {
-        Long fieldId = fileIdCache.computeIfAbsent(historyId, j -> jobHistoryService.selectByJobId(historyId).getFileId());
-        return function.apply(getJobApi(getRunnerType(fieldId)));
+    public <T> T invokeByHistoryId(String historyId, Function<ExecutableApi, T> function) {
+        ExecutableApi executableApi = historyApiCache.computeIfAbsent(historyId, i -> {
+            Long fieldId = fileIdCache.computeIfAbsent(historyId,
+                    j -> jobHistoryService.selectByJobId(historyId).getFileId());
+            return getJobApi(getRunnerType(fieldId));
+        });
+        return function.apply(executableApi);
     }
 
-    private JobApi getJobApi(String runnerType) {
+    private ExecutableApi getJobApi(String runnerType) {
         return apiCache.computeIfAbsent(runnerType, i -> createJobApi(runnerType));
     }
 
-    private JobApi createJobApi(String runnerType) {
-        JarClassLoader<JobApi> classLoader = new JarClassLoader<>("/tmp/lib/", JobApi.class);
-        Optional<JobApi> jobApi;
+    private ExecutableApi createJobApi(String runnerType) {
+        JarClassLoader<ExecutableApi> classLoader = new JarClassLoader<>("/tmp/lib/", ExecutableApi.class);
+        Optional<ExecutableApi> jobApi;
         try {
             jobApi = classLoader.loadFirst(runnerType);
             return jobApi.orElseThrow(() -> new RuntimeException(runnerType + " not supported"));

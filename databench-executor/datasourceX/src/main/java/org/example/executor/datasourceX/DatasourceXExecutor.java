@@ -4,10 +4,10 @@ import com.dtstack.dtcenter.loader.client.IClient;
 import com.dtstack.dtcenter.loader.dto.SqlQueryDTO;
 import com.dtstack.dtcenter.loader.dto.source.ISourceDTO;
 import org.example.databench.common.enums.DatasourceType;
-import org.example.executor.api.api.JobApi;
+import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.query.QueryResult;
-import org.example.executor.base.service.AbstractLocalJobRunner;
+import org.example.executor.base.service.AbstractLocalExecutor;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Created by shuangbofu on 2022/3/30 01:07
  */
-public class DatasourceXRunner extends AbstractLocalJobRunner implements JobApi {
+public class DatasourceXExecutor extends AbstractLocalExecutor implements ExecutableApi {
 
     @Override
     public boolean checkConnection(ApiParam param) {

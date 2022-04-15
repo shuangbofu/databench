@@ -5,7 +5,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.example.databench.common.enums.JobHistoryStatus;
 import org.example.databench.lib.utils.JSONUtils;
-import org.example.executor.api.api.JobApi;
+import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.Log;
 import org.slf4j.Logger;
@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 /**
  * Created by shuangbofu on 2022/4/1 22:14
  */
-public abstract class AbstractLocalJobRunner implements JobApi {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLocalJobRunner.class);
+public abstract class AbstractLocalExecutor implements ExecutableApi {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLocalExecutor.class);
     private static final ExecutorService pool = Executors.newFixedThreadPool(20);
     private static final Map<String, Future<?>> futureMap = new ConcurrentHashMap<>();
     private static final Map<String, List<String>> logLines = new ConcurrentHashMap<>();

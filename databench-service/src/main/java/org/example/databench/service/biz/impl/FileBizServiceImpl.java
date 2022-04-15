@@ -24,7 +24,7 @@ import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
 import org.example.databench.service.manager.ExecutorManager;
-import org.example.executor.api.api.JobApi;
+import org.example.executor.api.ExecutableApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -282,7 +282,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Override
     public String runFile(Long fileId, FileTuple fileTuple) {
         File file = fileService.selectOneById(fileId);
-        String jobId = executorManager.invokeByFileId(fileId, fileTuple, JobApi::executeFileJob);
+        String jobId = executorManager.invokeByFileId(fileId, fileTuple, ExecutableApi::executeFileJob);
         JobHistory jobHistory = new JobHistory()
                 .setJobId(jobId)
                 .setFileId(fileId)

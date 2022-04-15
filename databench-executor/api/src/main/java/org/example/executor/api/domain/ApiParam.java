@@ -11,7 +11,7 @@ import org.example.databench.common.enums.DatasourceType;
 public class ApiParam {
     private String name;
     private String description;
-    private String runnerType;
+    private String executorType;
     private String type;
     private String code;
     private String sql;

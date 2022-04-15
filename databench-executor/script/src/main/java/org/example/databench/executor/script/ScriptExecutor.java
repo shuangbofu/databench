@@ -3,10 +3,10 @@ package org.example.databench.executor.script;
 import org.example.databench.executor.script.executor.CommandExecutor;
 import org.example.databench.executor.script.executor.DefaultCommandExecutor;
 import org.example.databench.executor.script.executor.ExecResult;
-import org.example.executor.api.api.JobApi;
+import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.query.QueryResult;
-import org.example.executor.base.service.AbstractLocalJobRunner;
+import org.example.executor.base.service.AbstractLocalExecutor;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by shuangbofu on 2022/4/1 22:48
  */
-public class ScriptRunner extends AbstractLocalJobRunner implements JobApi {
+public class ScriptExecutor extends AbstractLocalExecutor implements ExecutableApi {
 
     private static final Map<String, CommandExecutor> executors = new ConcurrentHashMap<>();
 
