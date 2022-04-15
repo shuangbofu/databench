@@ -1,6 +1,7 @@
 package org.example.databench.service.biz.impl;
 
 import org.example.databench.common.domain.node.NodeCfg;
+import org.example.databench.common.enums.FileType;
 import org.example.databench.common.enums.ModuleType;
 import org.example.databench.service.BizService;
 import org.example.databench.service.FileService;
@@ -39,7 +40,8 @@ public class BusinessProcessBizServiceImpl extends AbstractService implements Bu
         List<FileVO> files = fileDao.listFiles(ModuleType.development, null);
         Set<FileNodeVO> nodes = new HashSet<>();
         Set<Edge> edges = new HashSet<>();
-        files.stream().filter(i -> i.getFileType().haveDag())
+        // FIXME
+        files.stream().filter(i -> FileType.valueOf(i.getFileType()).haveDag())
                 .forEach(i -> {
                     Long fileId = i.getId();
                     NodeCfg cfg = (NodeCfg) fileVersionService.getCfgByFileIdAndVersion(fileId, i.getVersion());

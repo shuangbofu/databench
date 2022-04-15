@@ -13,7 +13,7 @@ import org.example.databench.service.domain.base.BizBaseParam;
 @Data
 public class FolderParam extends BizBaseParam {
     private String name;
-    private ModuleType belong;
+    private ModuleType moduleType;
     private FileCategory category;
     private Long parentId;
 }

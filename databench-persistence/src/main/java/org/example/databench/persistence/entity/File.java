@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.example.databench.common.enums.FileCategory;
-import org.example.databench.common.enums.FileType;
 import org.example.databench.common.enums.ModuleType;
 import org.example.databench.persistence.entity.base.BizEntity;
 
@@ -17,9 +16,9 @@ import org.example.databench.persistence.entity.base.BizEntity;
 public class File extends BizEntity {
     private Long folderId;
     private String name;
-    private ModuleType belong;
+    private ModuleType moduleType;
     private FileCategory category;
-    private FileType fileType;
+    private String fileType;
     private Integer version;
     private Boolean deleteFlag;
 }

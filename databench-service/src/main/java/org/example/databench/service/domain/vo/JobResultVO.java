@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.example.databench.common.domain.query.QueryResult;
+import org.example.executor.api.domain.query.QueryResult;
 
 /**
  * Created by shuangbofu on 2022/3/30 21:02

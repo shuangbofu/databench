@@ -1,7 +1,7 @@
 package org.example.databench.persistence.handler;
 
 import io.github.shuangbofu.helper.mybatis.handler.BaseJsonTypeHandler;
-import org.example.databench.common.utils.JSONUtils;
+import org.example.databench.lib.utils.JSONUtils;
 
 public abstract class JsonTypeHandler<T> extends BaseJsonTypeHandler<T> {
 

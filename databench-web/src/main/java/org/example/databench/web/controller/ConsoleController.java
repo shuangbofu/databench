@@ -1,8 +1,6 @@
 package org.example.databench.web.controller;
 
-import org.example.databench.common.domain.query.QueryResult;
 import org.example.databench.common.vo.PageVO;
-import org.example.databench.executor.domain.Log;
 import org.example.databench.service.JobHistoryService;
 import org.example.databench.service.biz.ConsoleBizService;
 import org.example.databench.service.domain.param.JobHistoryFilter;
@@ -10,6 +8,8 @@ import org.example.databench.service.domain.param.PageFilterParam;
 import org.example.databench.service.domain.vo.JobHistoryVO;
 import org.example.databench.web.annotations.ResultController;
 import org.example.databench.web.config.DaoContext;
+import org.example.executor.api.domain.Log;
+import org.example.executor.api.domain.query.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

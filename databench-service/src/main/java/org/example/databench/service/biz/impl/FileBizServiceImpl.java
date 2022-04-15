@@ -10,7 +10,7 @@ import org.example.databench.common.domain.node.NodeOutput;
 import org.example.databench.common.domain.resource.FunctionContent;
 import org.example.databench.common.domain.resource.ResourceContent;
 import org.example.databench.common.enums.*;
-import org.example.databench.common.utils.Pair;
+import org.example.databench.lib.utils.Pair;
 import org.example.databench.persistence.entity.*;
 import org.example.databench.service.*;
 import org.example.databench.service.base.AbstractService;
@@ -24,6 +24,7 @@ import org.example.databench.service.domain.vo.CommitVersionVO;
 import org.example.databench.service.domain.vo.FileDetailVO;
 import org.example.databench.service.domain.vo.FileVO;
 import org.example.databench.service.manager.ExecutorManager;
+import org.example.executor.api.api.JobApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +68,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     public FileVO createFile(FileParam fileParam) {
         if (fileParam.getFolderId() > 0) {
             Folder folder = folderService.selectOneById(fileParam.getFolderId());
-            fileParam.setBelong(folder.getBelong());
+            fileParam.setModuleType(folder.getModuleType());
             fileParam.setBizId(folder.getBizId());
             fileParam.setWorkspaceId(folder.getWorkspaceId());
         }
@@ -81,7 +82,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         });
         String workspaceName = workspaceService.getNameById(file.getWorkspaceId());
 
-        if (fileParam.getBelong().isDevelop()) {
+        if (fileParam.getModuleType().isDevelop()) {
             nodeBizService.createOutputNode(file.getId(),
                     workspaceName + "." + file.getId() + "_out", "", SourceType.system);
         }
@@ -132,7 +133,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
             });
         }
         FileDetailVO fileDetailVO = aToB(fileVersion, FileDetailVO.class);
-        fileDetailVO.setBelong(file.getBelong());
+        fileDetailVO.setModuleType(file.getModuleType());
         return fileDetailVO;
     }
 
@@ -158,7 +159,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     public Long createFolder(FolderParam folderParam) {
         if (folderParam.getParentId() > 0) {
             Folder folder = folderService.selectOneById(folderParam.getParentId());
-            folderParam.setBelong(folder.getBelong());
+            folderParam.setModuleType(folder.getModuleType());
             folderParam.setBizId(folder.getBizId());
             folderParam.setWorkspaceId(folder.getWorkspaceId());
         }
@@ -225,7 +226,7 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
         commitFile(fileId, commitParam.getComment(), commitType);
 
         // 开发提交到node
-        if (ModuleType.development.equals(file.getBelong())) {
+        if (ModuleType.development.equals(file.getModuleType())) {
             nodeBizService.commitNode(file, fileVersion);
         }
 
@@ -281,44 +282,15 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     @Override
     public String runFile(Long fileId, FileTuple fileTuple) {
         File file = fileService.selectOneById(fileId);
-        FileVersion fileVersion = fileVersionService.getByFileIdAndVersion(fileId, file.getVersion());
-        if (fileTuple != null) {
-            copyAToB(fileTuple, fileVersion);
-        }
-        if (fileVersion == null) {
-            // TODO
-            throw new RuntimeException("error");
-        }
-
-        String jobId;
-        if (file.getBelong().equals(ModuleType.query) || file.getCategory().equals(FileCategory.database)) {
-            FileContent content = (FileContent) fileVersion.getContent();
-            QueryCfg cfg = (QueryCfg) fileVersion.getCfg();
-            if (cfg.getDatasourceFileId() == 0) {
-                throw new RuntimeException("没有选择数据源");
-            }
-            FileVersion datasourceFile = fileVersionService.getByFileIdAndVersion(cfg.getDatasourceFileId(),
-                    cfg.getDatasourceFileVersion());
-            jobId = executorManager.getDatasourceApi().executeFileJob(
-                    datasourceFile.getContent().getFileType(),
-                    content,
-                    datasourceFile.getCfg());
-        } else if (file.getBelong().isDevelop()) {
-            jobId = executorManager.getJobApi().executeFileJob(file.getFileType(),
-                    (FileContent) fileVersion.getContent(), fileVersion.getCfg());
-        } else {
-            throw new RuntimeException("Not supported " + file.getFileType());
-        }
-
+        String jobId = executorManager.invokeByFileId(fileId, fileTuple, JobApi::executeFileJob);
         JobHistory jobHistory = new JobHistory()
                 .setJobId(jobId)
-                .setFileId(file.getId())
+                .setFileId(fileId)
                 .setDone(false);
         jobHistory.setBizId(file.getBizId());
         jobHistory.setWorkspaceId(file.getWorkspaceId());
         jobHistory.setTenant(file.getTenant());
         jobHistoryService.insertAny(jobHistory);
-
         return jobId;
     }
 
@@ -327,40 +299,41 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
     }
 
     private FileTuple setUpFileTuple(File file) {
-        FileType fileType = file.getFileType();
+        String fileType = file.getFileType();
+        // FIXME
+        FileType fileTypeEnum = FileType.valueOf(fileType);
         FileBase content = null;
         FileCfg cfg = null;
-        if (fileType.isResource()) {
+        if (fileTypeEnum.isResource()) {
             content = new ResourceContent();
-        } else if (fileType.equals(FileType.function)) {
+        } else if (fileTypeEnum.equals(FileType.function)) {
             content = new FunctionContent();
         }
 
-        if (file.getBelong().equals(ModuleType.development)) {
-            String nodeType = fileType.name();
+        if (file.getModuleType().equals(ModuleType.development)) {
             NodeContent nodeContent = new NodeContent();
             // TODO set default vars
             nodeContent.setVars(new HashMap<>());
-            nodeContent.setFileType(fileType);
-            nodeContent.setNodeType(nodeType);
+            nodeContent.setNodeType(fileType);
             content = nodeContent;
         }
 
         if (content == null) {
             content = new FileContent();
-            content.setFileType(fileType);
         }
 
-        if (file.getBelong().isDevelop()) {
+        content.setFileType(fileType);
+
+        if (file.getModuleType().isDevelop()) {
             cfg = new NodeCfg();
-        } else if (file.getBelong().equals(ModuleType.query)) {
+        } else if (file.getModuleType().equals(ModuleType.query)) {
             cfg = new QueryCfg();
-        } else if (file.getBelong().equals(ModuleType.api)) {
+        } else if (file.getModuleType().equals(ModuleType.api)) {
             cfg = new ApiCfg();
-        } else if (file.getBelong().equals(ModuleType.resource)) {
-            if (fileType.getCategory().equals(FileCategory.datasource)) {
+        } else if (file.getModuleType().equals(ModuleType.resource)) {
+            if (fileTypeEnum.getCategory().equals(FileCategory.datasource)) {
                 DatasourceParam datasourceParam;
-                if (fileType.isJdbcResourceFile()) {
+                if (fileTypeEnum.isJdbcResourceFile()) {
                     datasourceParam = new JdbcParam();
                 } else {
                     datasourceParam = new DatasourceParam();

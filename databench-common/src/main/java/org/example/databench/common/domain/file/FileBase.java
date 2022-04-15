@@ -29,9 +29,11 @@ public abstract class FileBase {
     private String createBy;
     private String modifiedBy;
     private Integer version;
-    private FileType fileType;
+    private String fileType;
+    private String description;
 
     public FileCategory getCategory() {
-        return fileType.getCategory();
+        // FIXME
+        return FileType.valueOf(fileType).getCategory();
     }
 }

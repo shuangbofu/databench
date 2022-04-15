@@ -12,7 +12,7 @@ public class FolderVO {
     private Long id;
     private String name;
     private Long parentId;
-    private ModuleType belong;
+    private ModuleType moduleType;
     private FileCategory category;
     private Long createTime;
     private Long updateTime;

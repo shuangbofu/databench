@@ -15,6 +15,7 @@
         <module>databench-starter</module>
         <module>databench-common</module>
         <module>databench-executor</module>
+        <module>databench-lib</module>
     </modules>
 
     <properties>
@@ -42,7 +43,25 @@
             <dependency>
                 <groupId>org.example</groupId>
                 <artifactId>databench-executor</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${databench.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>databench-executor-api</artifactId>
+                <version>${databench.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>databench-executor-base</artifactId>
+                <version>${databench.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>databench-lib</artifactId>
+                <version>${databench.version}</version>
             </dependency>
 
             <dependency>

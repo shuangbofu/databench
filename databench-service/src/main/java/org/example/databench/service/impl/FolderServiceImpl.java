@@ -37,9 +37,9 @@ public class FolderServiceImpl extends CommonService<Folder, FolderDao> implemen
     }
 
     @Override
-    public List<FolderVO> getFolders(ModuleType belong) {
+    public List<FolderVO> getFolders(ModuleType moduleType) {
         return listAToListB(selectListBy(q -> q.lambda()
-                        .eq(Folder::getBelong, belong)),
+                        .eq(Folder::getModuleType, moduleType)),
                 FolderVO.class);
     }
 

@@ -3,7 +3,7 @@ package org.example.databench.service.biz.impl;
 import org.example.databench.common.domain.node.NodeCfg;
 import org.example.databench.common.domain.node.OutputNode;
 import org.example.databench.common.enums.SourceType;
-import org.example.databench.common.utils.Pair;
+import org.example.databench.lib.utils.Pair;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.persistence.entity.FileVersion;
 import org.example.databench.persistence.entity.Node;
@@ -50,7 +50,7 @@ public class NodeBizServiceImpl extends AbstractService implements NodeBizServic
         Function<Node, Node> copyToNode = node -> {
             copyAToBWithoutId(file, node, (f, n) -> {
                 n.setFileId(f.getId());
-                n.setNodeType(f.getFileType().name());
+                n.setNodeType(f.getFileType());
                 n.setDevVersion(fileVersion.getVersion());
             });
             return copyAToBWithoutId(fileVersion, node);

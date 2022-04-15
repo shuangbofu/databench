@@ -1,6 +1,6 @@
 package org.example.databench.service.impl;
 
-import org.example.databench.common.enums.FileType;
+
 import org.example.databench.common.enums.ModuleType;
 import org.example.databench.persistence.dao.FileDao;
 import org.example.databench.persistence.entity.File;
@@ -24,7 +24,7 @@ public class FileServiceImpl extends CommonService<File, FileDao> implements Fil
     }
 
     @Override
-    public FileType getFileType(Long fileId) {
+    public String getFileType(Long fileId) {
         return getDao().selectValueById(File::getFileType, fileId);
     }
 
@@ -39,9 +39,9 @@ public class FileServiceImpl extends CommonService<File, FileDao> implements Fil
     }
 
     @Override
-    public List<FileVO> listFiles(ModuleType belong, FileType fileType) {
+    public List<FileVO> listFiles(ModuleType moduleType, String fileType) {
         List<File> files = selectListBy(i -> i.lambda()
-                .eq(File::getBelong, belong)
+                .eq(File::getModuleType, moduleType)
                 .eq(File::getDeleteFlag, false)
                 .eq(fileType != null, File::getFileType, fileType)
         );

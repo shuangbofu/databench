@@ -23,7 +23,7 @@ public interface FolderService extends BaseService<Folder> {
      */
     boolean modifyFolder(FolderParam folderParam);
 
-    List<FolderVO> getFolders(ModuleType belong);
+    List<FolderVO> getFolders(ModuleType moduleType);
 
     long getChildCount(Long folderId);
 }

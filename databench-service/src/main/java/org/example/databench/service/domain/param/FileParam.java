@@ -14,11 +14,12 @@ import org.example.databench.service.domain.base.BizBaseParam;
 @Data
 public class FileParam extends BizBaseParam {
     private String name;
-    private ModuleType belong;
-    private FileType fileType;
+    private ModuleType moduleType;
+    private String fileType;
     private Long folderId;
 
     public FileCategory getCategory() {
-        return fileType.getCategory();
+        // FIXME
+        return FileType.valueOf(fileType).getCategory();
     }
 }

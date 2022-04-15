@@ -2,7 +2,6 @@ package org.example.databench.web.controller.file;
 
 import com.google.common.collect.Lists;
 import org.example.databench.common.domain.file.FileTuple;
-import org.example.databench.common.enums.FileType;
 import org.example.databench.common.enums.ModuleType;
 import org.example.databench.service.FileService;
 import org.example.databench.service.FolderService;
@@ -116,20 +115,20 @@ public class FileCommonBizController extends BaseController {
     }
 
     @GetMapping("tree")
-    public Map<String, List<Object>> getTreeData(Long workspaceId, Long bizId, ModuleType belong) {
+    public Map<String, List<Object>> getTreeData(Long workspaceId, Long bizId, ModuleType moduleType) {
         daoContext(workspaceId, bizId);
         Map<String, List<Object>> treeData = new HashMap<>();
-        List<FolderVO> folders = folderService.getFolders(belong);
-        List<FileVO> files = fileService.listFiles(belong, null);
+        List<FolderVO> folders = folderService.getFolders(moduleType);
+        List<FileVO> files = fileService.listFiles(moduleType, null);
         treeData.put("folders", Lists.newArrayList(folders));
         treeData.put("files", Lists.newArrayList(files));
         return treeData;
     }
 
     @GetMapping("file/list")
-    public List<FileVO> getFiles(Long workspaceId, Long bizId, ModuleType belong, FileType fileType) {
+    public List<FileVO> getFiles(Long workspaceId, Long bizId, ModuleType moduleType, String fileType) {
         daoContext(workspaceId, bizId);
-        return fileService.listFiles(belong, fileType);
+        return fileService.listFiles(moduleType, fileType);
     }
 
     @PostMapping("file/run")

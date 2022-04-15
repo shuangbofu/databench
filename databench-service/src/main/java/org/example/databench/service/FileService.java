@@ -1,6 +1,6 @@
 package org.example.databench.service;
 
-import org.example.databench.common.enums.FileType;
+
 import org.example.databench.common.enums.ModuleType;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.service.base.BaseService;
@@ -14,11 +14,11 @@ import java.util.List;
  */
 public interface FileService extends BaseService<File> {
 
-    FileType getFileType(Long fileId);
+    String getFileType(Long fileId);
 
     boolean modifyFile(FileParam fileParam);
 
-    List<FileVO> listFiles(ModuleType belong, FileType fileType);
+    List<FileVO> listFiles(ModuleType moduleType, String fileType);
 
     List<FileVO> listDeletedFiles();
 

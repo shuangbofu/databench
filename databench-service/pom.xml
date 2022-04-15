@@ -24,7 +24,12 @@
 
         <dependency>
             <groupId>org.example</groupId>
-            <artifactId>databench-executor</artifactId>
+            <artifactId>databench-executor-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>databench-lib</artifactId>
         </dependency>
 
         <dependency>

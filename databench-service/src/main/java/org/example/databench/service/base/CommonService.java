@@ -6,7 +6,7 @@ import io.github.shuangbofu.helper.dao.BaseDao;
 import io.github.shuangbofu.helper.entity.IdEntity;
 import io.github.shuangbofu.helper.handler.QueryHandler;
 import io.github.shuangbofu.helper.handler.UpdateHandler;
-import org.example.databench.common.utils.ReflectUtils;
+import org.example.databench.lib.utils.ReflectUtils;
 import org.example.databench.common.vo.PageVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

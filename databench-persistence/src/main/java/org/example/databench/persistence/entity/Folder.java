@@ -15,7 +15,7 @@ import org.example.databench.persistence.entity.base.BizEntity;
 @Data
 public class Folder extends BizEntity {
     private String name;
-    private ModuleType belong;
+    private ModuleType moduleType;
     private FileCategory category;
     private Long parentId;
 }

@@ -1,6 +1,6 @@
 package org.example.databench.web.aspect;
 
-import org.example.databench.common.utils.JSONUtils;
+import org.example.databench.lib.utils.JSONUtils;
 import org.example.databench.common.vo.Result;
 import org.example.databench.web.annotations.ResultBody;
 import org.springframework.core.MethodParameter;

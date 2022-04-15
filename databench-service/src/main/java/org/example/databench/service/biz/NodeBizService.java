@@ -3,7 +3,7 @@ package org.example.databench.service.biz;
 import org.example.databench.common.domain.node.NodeOutput;
 import org.example.databench.common.domain.node.OutputNode;
 import org.example.databench.common.enums.SourceType;
-import org.example.databench.common.utils.Pair;
+import org.example.databench.lib.utils.Pair;
 import org.example.databench.persistence.entity.File;
 import org.example.databench.persistence.entity.FileVersion;
 import org.example.databench.service.domain.node.Graph;

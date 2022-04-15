@@ -1,8 +1,7 @@
 package org.example.databench.service.biz.impl;
 
-import org.example.databench.common.domain.query.QueryResult;
+import org.example.databench.common.enums.JobHistoryStatus;
 import org.example.databench.common.vo.PageVO;
-import org.example.databench.executor.domain.Log;
 import org.example.databench.persistence.entity.JobHistory;
 import org.example.databench.service.FileService;
 import org.example.databench.service.JobHistoryService;
@@ -12,6 +11,10 @@ import org.example.databench.service.domain.param.JobHistoryFilter;
 import org.example.databench.service.domain.param.PageFilterParam;
 import org.example.databench.service.domain.vo.JobHistoryVO;
 import org.example.databench.service.manager.ExecutorManager;
+import org.example.executor.api.domain.Log;
+import org.example.executor.api.domain.query.QueryResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,7 @@ import java.util.function.Consumer;
 @Service
 public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBizService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleBizService.class);
     @Autowired
     private ExecutorManager executorManager;
 
@@ -31,10 +35,14 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
 
     private final Consumer<JobHistoryVO> consumer = (i) -> {
         if (!i.getDone()) {
-            i.setDone(checkJobDone(i.getJobId()));
+            boolean done = checkJobDone(i.getJobId());
+            LOGGER.info("{} done {}", i.getJobId(), done);
+            i.setDone(done);
         }
         if (i.getDone()) {
-            i.setStatus(executorManager.getDatasourceApi().getStatus(i.getJobId()));
+            JobHistoryStatus jobHistoryStatus = executorManager.invokeByHistoryId(i.getJobId(), j -> j.getStatus(i.getJobId()));
+            LOGGER.info("{} status {}", i.getJobId(), jobHistoryStatus);
+            i.setStatus(jobHistoryStatus);
         }
         i.setName(fileService.getName(i.getFileId()));
     };
@@ -58,21 +66,21 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
 
     @Override
     public boolean checkJobDone(String jobId) {
-        return executorManager.getJobApi().isDone(jobId);
+        return executorManager.invokeByHistoryId(jobId, i -> i.isDone(jobId));
     }
 
     @Override
     public Log fetchOffsetLog(String jobId, Long offset, Long length) {
-        return executorManager.getJobApi().fetchOffsetLog(jobId, offset, length);
+        return executorManager.invokeByHistoryId(jobId, i -> i.fetchOffsetLog(jobId, offset, length));
     }
 
     @Override
     public QueryResult fetchQueryResult(String jobId) {
-        return executorManager.getDatasourceApi().fetchResult(jobId);
+        return executorManager.invokeByHistoryId(jobId, i -> i.fetchResult(jobId));
     }
 
     @Override
     public Boolean cancelJob(String jobId) {
-        return executorManager.getJobApi().cancel(jobId);
+        return executorManager.invokeByHistoryId(jobId, i -> i.cancel(jobId));
     }
 }
