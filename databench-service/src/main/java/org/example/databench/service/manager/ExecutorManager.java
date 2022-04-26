@@ -38,9 +38,8 @@ import java.util.function.Function;
 public class ExecutorManager extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorManager.class);
-    private final Map<String, Long> fileIdCache = new ConcurrentHashMap<>();
+    private final Map<String, String> runTypeCache = new ConcurrentHashMap<>();
     private final Map<String, ExecutableApi> apiCache = new ConcurrentHashMap<>();
-    private final Map<String, ExecutableApi> historyApiCache = new ConcurrentHashMap<>();
     @Autowired
     private JobHistoryService jobHistoryService;
     @Autowired
@@ -67,8 +66,8 @@ public class ExecutorManager extends AbstractService {
             // TODO
             throw new RuntimeException("error");
         }
-
         ApiParam param = new ApiParam();
+        param.setTenant("test");
         param.setName(file.getName());
         param.setType(file.getFileType());
         FileContent content = (FileContent) fileVersion.getContent();
@@ -107,9 +106,12 @@ public class ExecutorManager extends AbstractService {
         return param;
     }
 
-    private String getRunnerType(Long fileId) {
+    private String getRunnerType(String historyId) {
+        Long fileId = jobHistoryService.selectByJobId(historyId).getFileId();
         File file = fileService.selectOneById(fileId);
-        if (file.getModuleType().equals(ModuleType.query) || file.getCategory().equals(FileCategory.database) || file.getCategory().equals(FileCategory.datasource)) {
+        if (file.getModuleType().equals(ModuleType.query) ||
+                file.getCategory().equals(FileCategory.database) ||
+                file.getCategory().equals(FileCategory.datasource)) {
             return "datasourceX";
         } else if (file.getModuleType().isDevelop()) {
             return "script";
@@ -118,12 +120,8 @@ public class ExecutorManager extends AbstractService {
     }
 
     public <T> T invokeByHistoryId(String historyId, Function<ExecutableApi, T> function) {
-        ExecutableApi executableApi = historyApiCache.computeIfAbsent(historyId, i -> {
-            Long fieldId = fileIdCache.computeIfAbsent(historyId,
-                    j -> jobHistoryService.selectByJobId(historyId).getFileId());
-            return getJobApi(getRunnerType(fieldId));
-        });
-        return function.apply(executableApi);
+        String runType = runTypeCache.computeIfAbsent(historyId, i -> getRunnerType(historyId));
+        return function.apply(getJobApi(runType));
     }
 
     private ExecutableApi getJobApi(String runnerType) {

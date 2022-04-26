@@ -17,4 +17,5 @@ public class ApiParam {
     private String sql;
     private JdbcParam jdbcParam;
     private DatasourceType datasourceType;
+    private String tenant;
 }

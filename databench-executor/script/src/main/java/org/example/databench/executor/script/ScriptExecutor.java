@@ -27,8 +27,8 @@ public class ScriptExecutor extends AbstractLocalExecutor implements ExecutableA
         String type = param.getType();
         String code = param.getCode();
         String command = buildCommand(LOG, jobId, type, code);
-        CommandExecutor executor = new DefaultCommandExecutor()
-                .logHandler((line, logLevel, logType) -> LOG.info(line));
+        CommandExecutor executor = new DefaultCommandExecutor().commandUser(param.getTenant())
+                .logHandler((line, logLevel, logType) -> LOG.log(line));
         executors.put(jobId, executor);
         ExecResult execResult = executor.execScript(command);
         if (!execResult.isSuccess()) {

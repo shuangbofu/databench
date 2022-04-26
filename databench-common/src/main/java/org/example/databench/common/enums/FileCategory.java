@@ -14,8 +14,11 @@ public enum FileCategory {
 
     file("文件"),
     datasource("数据源"),
-    compute("计算资源"),
     executor("执行资源"),
+
+    compute("计算组件"),
+    storage("存储组件"),
+    schedule("调度组件"),
 
     undefined("未定义"),
     ;

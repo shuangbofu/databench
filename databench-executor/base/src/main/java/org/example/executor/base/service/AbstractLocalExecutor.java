@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.example.databench.common.enums.JobHistoryStatus;
+import org.example.databench.lib.utils.FileUtils;
 import org.example.executor.api.ExecutableApi;
 import org.example.executor.api.domain.ApiParam;
 import org.example.executor.api.domain.Log;
@@ -12,6 +13,7 @@ import org.example.executor.base.service.db.LocalFileDb;
 import org.example.executor.base.service.log.ExecuteLogger;
 import org.example.executor.base.service.log.MemoLogStore;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractLocalExecutor implements ExecutableApi {
     private static final String STATUS_KEY = "status";
     private static final String LOG_KEY = "log";
+    private static final Map<Class<? extends AbstractLocalExecutor>, String> bannerCache = new ConcurrentHashMap<>();
     private final ExecutorService pool = Executors.newFixedThreadPool(20, new ThreadFactoryBuilder()
             .setNameFormat("executor-pool-%d").build());
     private final Map<String, Future<?>> futures = new ConcurrentHashMap<>();
@@ -89,6 +92,8 @@ public abstract class AbstractLocalExecutor implements ExecutableApi {
             boolean success = false;
             long start = System.currentTimeMillis();
             try {
+                printBanner(LOG);
+                LOG.info("开始执行");
                 execute(param, jobId, LOG);
                 success = true;
             } catch (Exception e) {
@@ -110,6 +115,20 @@ public abstract class AbstractLocalExecutor implements ExecutableApi {
             }
         }));
         return jobId;
+    }
+
+    private void printBanner(ExecuteLogger logger) {
+        try {
+            String banner = bannerCache.computeIfAbsent(getClass(), i -> {
+                try {
+                    return FileUtils.loadResourceFile("banner.txt");
+                } catch (IOException ignored) {
+                    throw new RuntimeException("error");
+                }
+            });
+            logger.info("\n" + banner + "\n");
+        } catch (Exception ignored) {
+        }
     }
 
     abstract protected void execute(ApiParam param, String jobId, ExecuteLogger LOG) throws Exception;

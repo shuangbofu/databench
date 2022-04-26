@@ -326,6 +326,8 @@ public class FileBizServiceImpl extends AbstractService implements FileBizServic
 
         if (file.getModuleType().isDevelop()) {
             cfg = new NodeCfg();
+        } else if (file.getModuleType().equals(ModuleType.component)) {
+            cfg = new ComponentCfg();
         } else if (file.getModuleType().equals(ModuleType.query)) {
             cfg = new QueryCfg();
         } else if (file.getModuleType().equals(ModuleType.api)) {

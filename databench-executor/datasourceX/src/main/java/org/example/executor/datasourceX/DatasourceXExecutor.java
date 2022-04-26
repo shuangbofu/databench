@@ -40,5 +40,4 @@ public class DatasourceXExecutor extends AbstractLocalExecutor implements Execut
         List<Map<String, Object>> result = client.executeQuery(datasource, query);
         getDb(jobId).set(QUERY_RESULT_KEY, new QueryResult(result));
     }
-
 }

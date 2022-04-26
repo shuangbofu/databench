@@ -31,6 +31,12 @@ public enum FileType {
     jdbc_hive(FileCategory.datasource),
 
     markdown(FileCategory.bigdata),
+
+    // 计算组件
+    component_spark(FileCategory.compute),
+    component_flink(FileCategory.compute),
+    component_hdfs(FileCategory.storage),
+    component_yarn(FileCategory.schedule),
     ;
 
     private final FileCategory category;

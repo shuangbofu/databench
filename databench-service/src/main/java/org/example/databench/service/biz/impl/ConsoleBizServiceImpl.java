@@ -29,10 +29,8 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleBizService.class);
     @Autowired
     private ExecutorManager executorManager;
-
     @Autowired
     private FileService fileService;
-
     private final Consumer<JobHistoryVO> consumer = (i) -> {
         if (!i.getDone()) {
             boolean done = checkJobDone(i.getJobId());
@@ -40,7 +38,8 @@ public class ConsoleBizServiceImpl extends AbstractService implements ConsoleBiz
             i.setDone(done);
         }
         if (i.getDone()) {
-            JobHistoryStatus jobHistoryStatus = executorManager.invokeByHistoryId(i.getJobId(), j -> j.getStatus(i.getJobId()));
+            JobHistoryStatus jobHistoryStatus = executorManager.invokeByHistoryId(i.getJobId(),
+                    j -> j.getStatus(i.getJobId()));
             LOGGER.info("{} status {}", i.getJobId(), jobHistoryStatus);
             i.setStatus(jobHistoryStatus);
         }

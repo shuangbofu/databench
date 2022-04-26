@@ -19,6 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.EXTERNAL_PROPERTY
         @JsonSubTypes.Type(value = QueryCfg.class, name = "query"),
         @JsonSubTypes.Type(value = ApiCfg.class, name = "aip"),
         @JsonSubTypes.Type(value = DatasourceCfg.class, name = "datasource"),
+        @JsonSubTypes.Type(value = ComponentCfg.class, name = "component")
 })
 public abstract class FileCfg {
     private List<Long> docFileList = new ArrayList<>();

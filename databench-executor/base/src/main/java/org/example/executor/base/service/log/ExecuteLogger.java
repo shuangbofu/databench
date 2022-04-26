@@ -8,4 +8,6 @@ public interface ExecuteLogger {
     void info(String msg);
 
     void error(String msg, Throwable e);
+
+    void log(String msg);
 }

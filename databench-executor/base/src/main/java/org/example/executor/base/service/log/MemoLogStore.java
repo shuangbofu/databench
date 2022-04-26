@@ -49,4 +49,9 @@ public class MemoLogStore implements ExecuteLogger {
     public void error(String msg, Throwable e) {
         log(LogType.ERROR, msg, e);
     }
+
+    @Override
+    public void log(String msg) {
+        logLines.add(msg);
+    }
 }
