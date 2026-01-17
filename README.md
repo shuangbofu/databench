@@ -23,10 +23,7 @@
 
 ## Databench 介绍视频
 
-<video width="800" controls>
-  <source src="https://fusb.top/data/video/databench_intro.mp4" type="video/mp4">
-  您的浏览器不支持 video 标签。
-</video>
+[点击观看 Databench 介绍视频](https://fusb.top/data/video/databench_intro.mp4)
 
 ## 📜 许可证
 
